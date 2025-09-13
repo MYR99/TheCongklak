@@ -4,11 +4,16 @@ using UnityEngine;
 
 public class SeedPool : MonoBehaviour
 {
+    [Header("Seed Visual Settings")]
+        [SerializeField] private float seedScale = 800f; // Adjust this in Inspector for seed size
     public static SeedPool Instance;
 
     [Header("Pool Configuration")]
     [SerializeField] private GameObject seedPrefab;
     [SerializeField] private int initialPoolSize = 100;
+    [Header("Seed Placement Settings")]
+    [Tooltip("Offset applied to each seed's local position inside the hole. Adjust in Inspector for perfect placement.")]
+    public Vector3 seedOffset = Vector3.zero;
     [SerializeField] private Transform poolParent;
 
     [Header("Animation Settings")]
@@ -173,15 +178,16 @@ public class SeedPool : MonoBehaviour
 
             // Position seeds in a circular pattern
             float angle = (360f / Mathf.Max(1, seedCount)) * i * Mathf.Deg2Rad;
-            float radius = 0.2f + (seedCount * 0.02f); // Smaller radius for better fit
+            float radius = 0.01f; // Much smaller radius for tight cluster
 
             Vector3 localPosition = new Vector3(
                 Mathf.Cos(angle) * radius,
-                0.05f, // Slightly above the hole surface
+                0.5f, // Slightly above the bottom of the hole
                 Mathf.Sin(angle) * radius
             );
 
             seed.transform.localPosition = localPosition;
+            seed.transform.localScale = Vector3.one * 50f;
             seeds.Add(seed);
         }
 
@@ -252,27 +258,36 @@ public class SeedPool : MonoBehaviour
         Transform seedContainer = hole.GetSeedContainer();
         int targetSeedCount = hole.GetSeedCount();
 
-        // Clear existing seeds
+        // Remove all existing seeds from this container (return to pool)
         List<GameObject> existingSeeds = new List<GameObject>();
-        for (int i = 0; i < seedContainer.childCount; i++)
+        for (int i = seedContainer.childCount - 1; i >= 0; i--)
         {
             GameObject child = seedContainer.GetChild(i).gameObject;
-            // Check if it's a seed (either by tag or name)
-            if (child.name.Contains("Seed") || child.name.Contains("DefaultSeed"))
+            if (child.CompareTag("Seed") || child.name.Contains("Seed") || child.name.Contains("DefaultSeed") || child.name.Contains("Walnut"))
             {
                 existingSeeds.Add(child);
             }
         }
-
+        
         ReturnSeeds(existingSeeds);
 
-        // Create new seeds
-        if (targetSeedCount > 0)
+        // Create and parent new seeds to the correct SeedContainer, spread in a circle
+        float radius = 0.3f; // Adjust for your board size
+        for (int i = 0; i < targetSeedCount; i++)
         {
-            CreateSeedsForHole(hole.transform, targetSeedCount);
+            GameObject seed = GetSeed();
+            seed.transform.SetParent(seedContainer);
+            // Spread seeds in a circle
+            float angle = (360f / Mathf.Max(1, targetSeedCount)) * i * Mathf.Deg2Rad;
+            Vector3 localPosition = new Vector3(
+                Mathf.Cos(angle) * radius,
+                0f, // Y offset, keep at 0 unless you want to lift seeds
+                Mathf.Sin(angle) * radius
+            );
+            seed.transform.localPosition = localPosition;
+            seed.transform.localRotation = Quaternion.identity;
+            seed.transform.localScale = Vector3.one * seedScale; // Use configurable scale
         }
-
-        Debug.Log($"Updated {hole.name} with {targetSeedCount} seeds");
     }
 
     /// <summary>

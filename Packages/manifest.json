@@ -46,7 +46,6 @@
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
-    "com.unity.modules.xr": "1.0.0",
-    "com.codemaestroai.advancedunitymcp": "https://github.com/codemaestroai/advanced-unity-mcp.git?path=Unity2020_2022#66924d388a65b051bcb708a64a984ae4f10e7e2e"
+    "com.unity.modules.xr": "1.0.0"
   }
 }
