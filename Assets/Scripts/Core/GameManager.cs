@@ -8,377 +8,284 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
     [SerializeField] public GameConfig gameConfig;
     [SerializeField] private BoardState boardState;
-    
+
     [Header("Board Setup - 7 Holes Per Player")]
-    [SerializeField] private Transform[] playerOneHoles = new Transform[7]; // Changed to 7 holes
-    [SerializeField] private Transform[] playerTwoHoles = new Transform[7]; // Changed to 7 holes
+    [SerializeField] private Transform[] playerOneHoles = new Transform[7]; // Inspector: Hole6 left → Hole0 right
+    [SerializeField] private Transform[] playerTwoHoles = new Transform[7]; // Inspector: Opponent0 left → Opponent6 right
     [SerializeField] private Transform playerOneStorehouse;
     [SerializeField] private Transform playerTwoStorehouse;
-    
+
     [Header("Game State")]
     public bool isGameActive = false;
-    public int currentPlayer = 1; // 1 for Player 1, 2 for Player 2
-    
+    public int currentPlayer = 1; // 1 = PlayerOne, 2 = PlayerTwo
+
     private void Awake()
     {
-        // Singleton pattern implementation - REMOVED DontDestroyOnLoad to fix SeedPool errors
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
     }
-    
+
     private void Start()
     {
-        // Wait a frame to ensure SeedPool is initialized
+        bool hasError = false;
+        if (playerOneHoles.Length != 7) { Debug.LogError("PlayerOneHoles must have 7 elements"); hasError = true; }
+        if (playerTwoHoles.Length != 7) { Debug.LogError("PlayerTwoHoles must have 7 elements"); hasError = true; }
+        if (playerOneStorehouse == null || playerTwoStorehouse == null) { Debug.LogError("Storehouses not assigned"); hasError = true; }
+        if (gameConfig == null) { Debug.LogError("GameConfig missing"); hasError = true; }
+        if (hasError) return;
+
         StartCoroutine(InitializeGameDelayed());
     }
-    
+
     private IEnumerator InitializeGameDelayed()
     {
-        yield return null; // Wait one frame
+        yield return null;
         InitializeGame();
     }
-    
-    /// <summary>
-    /// Initialize the game board with starting seed configuration
-    /// </summary>
+
     public void InitializeGame()
     {
-        // Initialize board state for 7 holes per player
-        boardState = new BoardState();
-        boardState.playerOneHoles = new int[7]; // 7 holes per player
-        boardState.playerTwoHoles = new int[7]; // 7 holes per player
-        
-        // Set initial seeds (typically 7 seeds per hole)
-        for (int i = 0; i < 7; i++) // Changed to 7 holes
+        boardState = new BoardState
+        {
+            playerOneHoles = new int[7],
+            playerTwoHoles = new int[7],
+            playerOneProtected = new bool[7],
+            playerTwoProtected = new bool[7],
+            currentPlayer = 1,
+            gameStatus = GameStatus.Playing
+        };
+
+        for (int i = 0; i < 7; i++)
         {
             boardState.playerOneHoles[i] = gameConfig.initialSeedsPerHole;
             boardState.playerTwoHoles[i] = gameConfig.initialSeedsPerHole;
+            boardState.playerOneProtected[i] = false;
+            boardState.playerTwoProtected[i] = false;
         }
-        
+
         boardState.playerOneScore = 0;
         boardState.playerTwoScore = 0;
-        boardState.currentPlayer = 1;
-        boardState.gameStatus = GameStatus.Playing;
-        
         currentPlayer = 1;
         isGameActive = true;
-        
-        // Update visual representation
+
         UpdateBoardVisuals();
         UpdateUI();
-        
-        Debug.Log("Indonesian Congklak game initialized successfully with 7 holes per player!");
     }
-    
-    /// <summary>
-    /// Check if a move is valid for the current player
-    /// </summary>
+
+    // Map inspector index → canonical pit index
+    private int GetPitIndexFromHoleIndex(int holeIndex, bool isPlayerOne)
+    {
+        if (isPlayerOne)
+            return 6 - holeIndex; // reversed for PlayerOne
+        else
+            return 8 + holeIndex; // straight for PlayerTwo
+    }
+
     public bool IsValidMove(int holeIndex)
     {
         if (!isGameActive) return false;
-        
         if (currentPlayer == 1)
-        {
-            return holeIndex >= 0 && holeIndex < 7 && boardState.playerOneHoles[holeIndex] > 0; // Changed to 7
-        }
+            return boardState.playerOneHoles[holeIndex] > 0 && !boardState.playerOneProtected[holeIndex];
         else
-        {
-            return holeIndex >= 0 && holeIndex < 7 && boardState.playerTwoHoles[holeIndex] > 0; // Changed to 7
-        }
+            return boardState.playerTwoHoles[holeIndex] > 0 && !boardState.playerTwoProtected[holeIndex];
     }
-    
-    /// <summary>
-    /// Execute a move starting from the specified hole
-    /// </summary>
+
     public void MakeMove(int startingHoleIndex)
     {
         if (!IsValidMove(startingHoleIndex)) return;
-        
         StartCoroutine(SowSeedsWithAnimation(startingHoleIndex));
     }
-    
-    /// <summary>
-    /// Enhanced sowing with visual animation for 7-hole Congklak
-    /// </summary>
+
+    // 🔄 Continuous Congklak sowing with capture rule
     public IEnumerator SowSeedsWithAnimation(int startingHoleIndex)
     {
         isGameActive = false;
-        
-        int seeds;
-        int currentHole = startingHoleIndex;
-        bool isPlayerOneSide = currentPlayer == 1;
-        
-        // Get starting hole transform for animation
-        Transform startingHoleTransform = GetHoleTransform(startingHoleIndex, isPlayerOneSide);
-        
-        // Pick up seeds from starting hole
-        if (isPlayerOneSide)
+        bool isPlayerOne = currentPlayer == 1;
+
+        // Copy state to pits
+        int[] pits = new int[16];
+        for (int i = 0; i < 7; i++)
         {
-            seeds = boardState.playerOneHoles[startingHoleIndex];
-            boardState.playerOneHoles[startingHoleIndex] = 0;
+            pits[i] = boardState.playerOneHoles[i];
+            pits[8 + i] = boardState.playerTwoHoles[i];
         }
-        else
-        {
-            seeds = boardState.playerTwoHoles[startingHoleIndex];
-            boardState.playerTwoHoles[startingHoleIndex] = 0;
-        }
-        
-        // Update visual immediately for starting hole
-        UpdateHoleVisual(startingHoleIndex, isPlayerOneSide);
-        
-        // Create temporary seeds for animation only if SeedPool exists
-        List<GameObject> animatingSeeds = new List<GameObject>();
+        pits[7] = boardState.playerOneScore;
+        pits[15] = boardState.playerTwoScore;
+
+        int pitIndex = GetPitIndexFromHoleIndex(startingHoleIndex, isPlayerOne);
+        int seeds = pits[pitIndex];
+        pits[pitIndex] = 0;
+
+        // Clear visuals immediately
         if (SeedPool.Instance != null)
         {
-            for (int i = 0; i < seeds; i++)
+            Hole startHole = GetHoleTransform(startingHoleIndex, isPlayerOne).GetComponent<Hole>();
+            if (startHole != null)
             {
-                GameObject seed = SeedPool.Instance.GetSeed();
-                seed.transform.position = startingHoleTransform.position;
-                animatingSeeds.Add(seed);
+                startHole.SetSeedCount(0);
+                SeedPool.Instance.UpdateHoleSeeds(startHole);
             }
         }
-        
-        int seedIndex = 0;
-        
-        // Distribute seeds with animation (7-hole version)
-        while (seeds > 0)
+
+        int lastPit = pitIndex;
+
+        // 🔄 Continuous sowing loop
+        while (true)
         {
-            // Move to next hole
-            if (isPlayerOneSide)
+            while (seeds > 0)
             {
-                currentHole++;
-                if (currentHole >= 7) // Changed to 7 holes
+                lastPit = (lastPit + 1) % 16;
+
+                // Skip opponent’s storehouse
+                if ((isPlayerOne && lastPit == 15) || (!isPlayerOne && lastPit == 7))
+                    continue;
+
+                pits[lastPit]++;
+
+                // Animate drop
+                if (SeedPool.Instance != null)
                 {
-                    // Reached player's storehouse
-                    if (currentPlayer == 1)
+                    Transform toTransform = PitToTransform(lastPit);
+                    if (toTransform != null)
                     {
-                        Transform storehouseTransform = playerOneStorehouse;
-                        
-                        // Animate seed to storehouse if SeedPool exists
-                        if (SeedPool.Instance != null && seedIndex < animatingSeeds.Count)
-                        {
-                            StartCoroutine(SeedPool.Instance.AnimateSeedMovement(
-                                animatingSeeds[seedIndex], 
-                                animatingSeeds[seedIndex].transform, 
-                                storehouseTransform,
-                                seedIndex * 0.1f
-                            ));
-                        }
-                        
-                        boardState.playerOneScore++;
-                        seeds--;
-                        seedIndex++;
-                        
-                        yield return new WaitForSeconds(gameConfig.animationSpeed);
-                        UpdateUI();
-                        
-                        if (seeds == 0) break;
-                    }
-                    
-                    isPlayerOneSide = false;
-                    currentHole = 6; // Start from rightmost hole on opponent's side (index 6)
-                }
-                else
-                {
-                    Transform targetHole = GetHoleTransform(currentHole, true);
-                    
-                    // Animate seed to hole if SeedPool exists
-                    if (SeedPool.Instance != null && seedIndex < animatingSeeds.Count)
-                    {
+                        GameObject seed = SeedPool.Instance.GetSeed();
+                        seed.transform.position = toTransform.position;
                         StartCoroutine(SeedPool.Instance.AnimateSeedMovement(
-                            animatingSeeds[seedIndex],
-                            animatingSeeds[seedIndex].transform, 
-                            targetHole,
-                            seedIndex * 0.1f
-                        ));
+                            seed, seed.transform, toTransform, 0f));
                     }
-                    
-                    boardState.playerOneHoles[currentHole]++;
-                    seeds--;
-                    seedIndex++;
-                    
-                    yield return new WaitForSeconds(gameConfig.animationSpeed);
-                    UpdateHoleVisual(currentHole, true);
+                }
+
+                seeds--;
+                yield return new WaitForSeconds(gameConfig.animationSpeed);
+            }
+
+            // 🌟 Finished sowing → check where last seed landed
+            if ((isPlayerOne && lastPit == 7) || (!isPlayerOne && lastPit == 15))
+            {
+                // Landed in own storehouse → extra turn
+                Debug.Log("Extra turn!");
+                break;
+            }
+            else if (pits[lastPit] > 1)
+            {
+                // Landed in non-empty hole → continue sowing
+                seeds = pits[lastPit];
+                pits[lastPit] = 0;
+
+                Hole hole = PitToTransform(lastPit)?.GetComponent<Hole>();
+                if (hole != null)
+                {
+                    hole.SetSeedCount(0);
+                    SeedPool.Instance?.UpdateHoleSeeds(hole);
                 }
             }
             else
             {
-                currentHole--;
-                if (currentHole < 0)
+                // Landed in empty hole → possible capture
+                if (isPlayerOne && lastPit >= 0 && lastPit <= 6)
                 {
-                    // Reached player's storehouse
-                    if (currentPlayer == 2)
+                    int oppositePit = 14 - lastPit;
+                    if (pits[oppositePit] > 0)
                     {
-                        Transform storehouseTransform = playerTwoStorehouse;
-                        
-                        // Animate seed to storehouse if SeedPool exists
-                        if (SeedPool.Instance != null && seedIndex < animatingSeeds.Count)
-                        {
-                            StartCoroutine(SeedPool.Instance.AnimateSeedMovement(
-                                animatingSeeds[seedIndex], 
-                                animatingSeeds[seedIndex].transform,
-                                storehouseTransform,
-                                seedIndex * 0.1f
-                            ));
-                        }
-                        
-                        boardState.playerTwoScore++;
-                        seeds--;
-                        seedIndex++;
-                        
-                        yield return new WaitForSeconds(gameConfig.animationSpeed);
-                        UpdateUI();
-                        
-                        if (seeds == 0) break;
+                        int captured = pits[oppositePit] + 1;
+                        pits[oppositePit] = 0;
+                        pits[lastPit] = 0;
+                        pits[7] += captured;
                     }
-                    
-                    isPlayerOneSide = true;
-                    currentHole = 0; // Start from leftmost hole on opponent's side
                 }
-                else
+                else if (!isPlayerOne && lastPit >= 8 && lastPit <= 14)
                 {
-                    Transform targetHole = GetHoleTransform(currentHole, false);
-                    
-                    // Animate seed to hole if SeedPool exists
-                    if (SeedPool.Instance != null && seedIndex < animatingSeeds.Count)
+                    int oppositePit = 14 - lastPit;
+                    if (pits[oppositePit] > 0)
                     {
-                        StartCoroutine(SeedPool.Instance.AnimateSeedMovement(
-                            animatingSeeds[seedIndex],
-                            animatingSeeds[seedIndex].transform,
-                            targetHole,
-                            seedIndex * 0.1f
-                        ));
+                        int captured = pits[oppositePit] + 1;
+                        pits[oppositePit] = 0;
+                        pits[lastPit] = 0;
+                        pits[15] += captured;
                     }
-                    
-                    boardState.playerTwoHoles[currentHole]++;
-                    seeds--;
-                    seedIndex++;
-                    
-                    yield return new WaitForSeconds(gameConfig.animationSpeed);
-                    UpdateHoleVisual(currentHole, false);
                 }
+                break; // stop turn
             }
         }
-        
-        // Wait for all animations to complete
-        yield return new WaitForSeconds(1f);
-        
-        // Return animated seeds to pool if SeedPool exists
-        if (SeedPool.Instance != null)
+
+        yield return new WaitForSeconds(0.2f);
+
+        // Write back board state
+        for (int i = 0; i < 7; i++)
         {
-            SeedPool.Instance.ReturnSeeds(animatingSeeds);
+            boardState.playerOneHoles[i] = pits[i];
+            boardState.playerTwoHoles[i] = pits[8 + i];
         }
-        
-        // Check for capture (Indonesian rules)
-        yield return StartCoroutine(CheckAndExecuteCapture(currentHole, isPlayerOneSide));
-        
-        // Check for game end
+        boardState.playerOneScore = pits[7];
+        boardState.playerTwoScore = pits[15];
+
+        UpdateBoardVisuals();
+
+        // --- End of Turn ---
         if (CheckGameEnd())
         {
             EndGame();
+            yield break;
         }
-        else
+
+        // Extra turn rule
+        if ((isPlayerOne && lastPit == 7) || (!isPlayerOne && lastPit == 15))
         {
-            // Switch turns (unless last seed landed in own storehouse)
-            bool extraTurn = false;
-            if (isPlayerOneSide && currentPlayer == 1 && currentHole == -1) extraTurn = true;
-            if (!isPlayerOneSide && currentPlayer == 2 && currentHole == 7) extraTurn = true; // Changed to 7
-            
-            if (!extraTurn)
-            {
-                currentPlayer = currentPlayer == 1 ? 2 : 1;
-                boardState.currentPlayer = currentPlayer;
-            }
-            
-            UpdateUI();
             isGameActive = true;
+            UpdateUI();
+            yield break;
         }
+
+        // Otherwise, switch turns
+        currentPlayer = currentPlayer == 1 ? 2 : 1;
+        boardState.currentPlayer = currentPlayer;
+        UpdateUI();
+        isGameActive = true;
     }
-    
-    /// <summary>
-    /// Check and execute capture rules (Indonesian Congklak rules)
-    /// </summary>
-    private IEnumerator CheckAndExecuteCapture(int lastHole, bool isPlayerOneSide)
+
+    private Transform PitToTransform(int pitIndex)
     {
-        // Capture only if last seed lands in own empty hole
-        if (isPlayerOneSide && currentPlayer == 1)
-        {
-            if (lastHole >= 0 && lastHole < 7 && boardState.playerOneHoles[lastHole] == 1) // Changed to 7
-            {
-                int oppositeHole = 6 - lastHole; // Opposite hole calculation for 7 holes
-                if (boardState.playerTwoHoles[oppositeHole] > 0)
-                {
-                    // Execute capture
-                    boardState.playerOneScore += boardState.playerOneHoles[lastHole] + boardState.playerTwoHoles[oppositeHole];
-                    boardState.playerOneHoles[lastHole] = 0;
-                    boardState.playerTwoHoles[oppositeHole] = 0;
-                    
-                    yield return new WaitForSeconds(gameConfig.animationSpeed);
-                    UpdateBoardVisuals();
-                    UpdateUI();
-                }
-            }
-        }
-        else if (!isPlayerOneSide && currentPlayer == 2)
-        {
-            if (lastHole >= 0 && lastHole < 7 && boardState.playerTwoHoles[lastHole] == 1) // Changed to 7
-            {
-                int oppositeHole = 6 - lastHole; // Opposite hole calculation for 7 holes
-                if (boardState.playerOneHoles[oppositeHole] > 0)
-                {
-                    // Execute capture
-                    boardState.playerTwoScore += boardState.playerTwoHoles[lastHole] + boardState.playerOneHoles[oppositeHole];
-                    boardState.playerTwoHoles[lastHole] = 0;
-                    boardState.playerOneHoles[oppositeHole] = 0;
-                    
-                    yield return new WaitForSeconds(gameConfig.animationSpeed);
-                    UpdateBoardVisuals();
-                    UpdateUI();
-                }
-            }
-        }
+        if (pitIndex >= 0 && pitIndex <= 6)
+            return playerOneHoles[6 - pitIndex];
+        if (pitIndex == 7) return playerOneStorehouse;
+        if (pitIndex >= 8 && pitIndex <= 14)
+            return playerTwoHoles[pitIndex - 8];
+        if (pitIndex == 15) return playerTwoStorehouse;
+        return null;
     }
-    
-    /// <summary>
-    /// Check if the game has ended (one side has no seeds)
-    /// </summary>
+
     private bool CheckGameEnd()
     {
-        bool playerOneHasSeeds = false;
-        bool playerTwoHasSeeds = false;
-        
-        for (int i = 0; i < 7; i++) // Changed to 7 holes
+        bool p1Has = false, p2Has = false;
+        for (int i = 0; i < 7; i++)
         {
-            if (boardState.playerOneHoles[i] > 0) playerOneHasSeeds = true;
-            if (boardState.playerTwoHoles[i] > 0) playerTwoHasSeeds = true;
+            if (boardState.playerOneHoles[i] > 0) p1Has = true;
+            if (boardState.playerTwoHoles[i] > 0) p2Has = true;
         }
-        
-        return !playerOneHasSeeds || !playerTwoHasSeeds;
+        return !p1Has || !p2Has;
     }
-    
-    /// <summary>
-    /// End the game and determine winner
-    /// </summary>
+
     private void EndGame()
     {
         isGameActive = false;
-        
-        // Add remaining seeds to respective storehouses
-        for (int i = 0; i < 7; i++) // Changed to 7 holes
+
+        for (int i = 0; i < 7; i++)
         {
             boardState.playerOneScore += boardState.playerOneHoles[i];
             boardState.playerTwoScore += boardState.playerTwoHoles[i];
             boardState.playerOneHoles[i] = 0;
             boardState.playerTwoHoles[i] = 0;
         }
-        
-        // Determine winner
+
+        if (ReseedNextRound())
+        {
+            Debug.Log("Next round started with Ngacang rules.");
+            isGameActive = true;
+            UpdateBoardVisuals();
+            UpdateUI();
+            return;
+        }
+
         if (boardState.playerOneScore > boardState.playerTwoScore)
         {
             boardState.gameStatus = GameStatus.PlayerOneWins;
@@ -394,134 +301,95 @@ public class GameManager : MonoBehaviour
             boardState.gameStatus = GameStatus.Draw;
             boardState.winner = 0;
         }
-        
+
         UpdateBoardVisuals();
         UpdateUI();
-        
-        Debug.Log($"Indonesian Congklak game ended! Winner: Player {boardState.winner}");
     }
-    
-    /// <summary>
-    /// Get hole transform for animation
-    /// </summary>
+
+    private bool ReseedNextRound()
+    {
+        bool reseeded = false;
+
+        int availableSeeds1 = boardState.playerOneScore;
+        int holesFilled1 = 0;
+        for (int i = 0; i < 7 && availableSeeds1 > 0; i++)
+        {
+            if (boardState.playerOneProtected[i]) continue;
+            boardState.playerOneHoles[i] = 1;
+            availableSeeds1--;
+            holesFilled1++;
+        }
+        boardState.playerOneScore = availableSeeds1;
+        if (holesFilled1 < 7) boardState.playerOneProtected[6] = true;
+
+        int availableSeeds2 = boardState.playerTwoScore;
+        int holesFilled2 = 0;
+        for (int i = 0; i < 7 && availableSeeds2 > 0; i++)
+        {
+            if (boardState.playerTwoProtected[i]) continue;
+            boardState.playerTwoHoles[i] = 1;
+            availableSeeds2--;
+            holesFilled2++;
+        }
+        boardState.playerTwoScore = availableSeeds2;
+        if (holesFilled2 < 7) boardState.playerTwoProtected[6] = true;
+
+        if (holesFilled1 > 0 || holesFilled2 > 0) reseeded = true;
+        return reseeded;
+    }
+
     private Transform GetHoleTransform(int holeIndex, bool isPlayerOneSide)
     {
-        if (isPlayerOneSide)
-        {
-            return playerOneHoles[holeIndex];
-        }
-        else
-        {
-            return playerTwoHoles[holeIndex];
-        }
+        return isPlayerOneSide ? playerOneHoles[holeIndex] : playerTwoHoles[holeIndex];
     }
-    
-    /// <summary>
-    /// Update visual representation of a specific hole
-    /// </summary>
-    private void UpdateHoleVisual(int holeIndex, bool isPlayerOneSide)
-    {
-        Transform holeTransform = GetHoleTransform(holeIndex, isPlayerOneSide);
-        Hole holeComponent = holeTransform.GetComponent<Hole>();
-        
-        if (holeComponent != null)
-        {
-            int seedCount = isPlayerOneSide ? boardState.playerOneHoles[holeIndex] : boardState.playerTwoHoles[holeIndex];
-            holeComponent.SetSeedCount(seedCount);
-            
-            // Update visual seeds if SeedPool exists
-            if (SeedPool.Instance != null)
-            {
-                SeedPool.Instance.UpdateHoleSeeds(holeComponent);
-            }
-        }
-    }
-    
-    /// <summary>
-    /// Update visual representation of the board
-    /// </summary>
+
     private void UpdateBoardVisuals()
     {
-        // Update hole components for 7 holes
-        for (int i = 0; i < 7; i++) // Changed to 7 holes
+        for (int i = 0; i < 7; i++)
         {
-            if (playerOneHoles[i] != null)
+            if (playerOneHoles[6 - i] != null)
             {
-                Hole holeComponent = playerOneHoles[i].GetComponent<Hole>();
-                if (holeComponent != null)
+                Hole holeComp = playerOneHoles[6 - i].GetComponent<Hole>();
+                if (holeComp != null)
                 {
-                    holeComponent.SetSeedCount(boardState.playerOneHoles[i]);
-                    
-                    // Update visual seeds if SeedPool exists
-                    if (SeedPool.Instance != null)
-                    {
-                        SeedPool.Instance.UpdateHoleSeeds(holeComponent);
-                    }
+                    holeComp.SetSeedCount(boardState.playerOneHoles[i]);
+                    holeComp.SetProtected(boardState.playerOneProtected[i]);
+                    SeedPool.Instance?.UpdateHoleSeeds(holeComp);
                 }
             }
-            
+
             if (playerTwoHoles[i] != null)
             {
-                Hole holeComponent = playerTwoHoles[i].GetComponent<Hole>();
-                if (holeComponent != null)
+                Hole holeComp = playerTwoHoles[i].GetComponent<Hole>();
+                if (holeComp != null)
                 {
-                    holeComponent.SetSeedCount(boardState.playerTwoHoles[i]);
-                    
-                    // Update visual seeds if SeedPool exists
-                    if (SeedPool.Instance != null)
-                    {
-                        SeedPool.Instance.UpdateHoleSeeds(holeComponent);
-                    }
+                    holeComp.SetSeedCount(boardState.playerTwoHoles[i]);
+                    holeComp.SetProtected(boardState.playerTwoProtected[i]);
+                    SeedPool.Instance?.UpdateHoleSeeds(holeComp);
                 }
             }
         }
-        
-        // Update storehouses
+
         if (playerOneStorehouse != null)
         {
-            Hole storehouseComponent = playerOneStorehouse.GetComponent<Hole>();
-            if (storehouseComponent != null)
-            {
-                storehouseComponent.SetSeedCount(boardState.playerOneScore);
-                
-                // Update visual seeds if SeedPool exists
-                if (SeedPool.Instance != null)
-                {
-                    SeedPool.Instance.UpdateHoleSeeds(storehouseComponent);
-                }
-            }
+            Hole store = playerOneStorehouse.GetComponent<Hole>();
+            store?.SetSeedCount(boardState.playerOneScore);
+            SeedPool.Instance?.UpdateHoleSeeds(store);
         }
-        
+
         if (playerTwoStorehouse != null)
         {
-            Hole storehouseComponent = playerTwoStorehouse.GetComponent<Hole>();
-            if (storehouseComponent != null)
-            {
-                storehouseComponent.SetSeedCount(boardState.playerTwoScore);
-                
-                // Update visual seeds if SeedPool exists
-                if (SeedPool.Instance != null)
-                {
-                    SeedPool.Instance.UpdateHoleSeeds(storehouseComponent);
-                }
-            }
+            Hole store = playerTwoStorehouse.GetComponent<Hole>();
+            store?.SetSeedCount(boardState.playerTwoScore);
+            SeedPool.Instance?.UpdateHoleSeeds(store);
         }
     }
-    
-    /// <summary>
-    /// Update UI elements
-    /// </summary>
+
     private void UpdateUI()
     {
-        if (UIController.Instance != null)
-        {
-            UIController.Instance.UpdateGameState(boardState);
-        }
+        UIController.Instance?.UpdateGameState(boardState);
     }
-    
-    /// <summary>
-    /// Restart the game
-    /// </summary>
+
     public void RestartGame()
     {
         InitializeGame();
@@ -529,53 +397,20 @@ public class GameManager : MonoBehaviour
 }
 
 [System.Serializable]
-public class GameConfig
-{
-    [Header("Game Rules - Indonesian Congklak")]
-    public int initialSeedsPerHole = 7;
-    
-    [Header("Animation")]
-    public float animationSpeed = 0.3f;
-    
-    [Header("Audio")]
-    public bool soundEnabled = true;
-    public float musicVolume = 0.7f;
-    public float sfxVolume = 0.8f;
-    
-    [Header("AI")]
-    public AILevel aiDifficulty = AILevel.Medium;
-    public GameMode gameMode = GameMode.PlayerVsPlayer;
-}
-
-[System.Serializable]
 public class BoardState
 {
-    public int[] playerOneHoles = new int[7]; // Changed to 7 holes
-    public int[] playerTwoHoles = new int[7]; // Changed to 7 holes
+    public int[] playerOneHoles;
+    public int[] playerTwoHoles;
     public int playerOneScore;
     public int playerTwoScore;
     public int currentPlayer;
     public GameStatus gameStatus;
     public int winner;
+
+    public bool[] playerOneProtected;
+    public bool[] playerTwoProtected;
 }
 
-public enum GameStatus
-{
-    Playing,
-    PlayerOneWins,
-    PlayerTwoWins,
-    Draw
-}
-
-public enum AILevel
-{
-    Easy,
-    Medium,
-    Hard
-}
-
-public enum GameMode
-{
-    PlayerVsPlayer,
-    PlayerVsAI
-}
+public enum GameStatus { Playing, PlayerOneWins, PlayerTwoWins, Draw }
+public enum AILevel { Easy, Medium, Hard }
+public enum GameMode { PlayerVsPlayer, PlayerVsAI }
