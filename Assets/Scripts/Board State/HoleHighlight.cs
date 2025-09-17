@@ -3,7 +3,6 @@ using UnityEngine;
 [RequireComponent(typeof(Hole))]
 public class HoleHighlight : MonoBehaviour
 {
-    [Header("Highlight Settings")]
     [SerializeField] private Color highlightColor = Color.yellow;
 
     private Hole hole;
@@ -20,25 +19,16 @@ public class HoleHighlight : MonoBehaviour
 
     private void Update()
     {
-        UpdateHighlightState();
+        if (hole == null || rend == null) return;
+        var gm = GameManager.Instance;
+        if (gm == null) return;
+
+        bool canSelect = gm.isGameActive && gm.IsValidMove(GetHoleIndex());
+        rend.material.color = canSelect ? highlightColor : originalColor;
     }
 
-    private void UpdateHighlightState()
+    private int GetHoleIndex()
     {
-        if (hole == null || rend == null) return;
-
-        bool canSelect = false;
-        var gm = GameManager.Instance;
-
-        // Highlight only when the game is active and GameManager says it's a valid move.
-        // GameManager.IsValidMove(...) already checks: current player, seed count and protected state.
-        if (gm != null && gm.isGameActive)
-        {
-            int holeIndex = hole.GetHoleIndex();
-            canSelect = gm.IsValidMove(holeIndex);
-        }
-
-        // Set color (using material instance). If many holes, consider using a shared shader property instead.
-        rend.material.color = canSelect ? highlightColor : originalColor;
+        return transform.GetSiblingIndex();
     }
 }

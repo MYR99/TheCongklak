@@ -1,75 +1,48 @@
 using UnityEngine;
 using TMPro;
 
+public enum HoleType { PlayerOne, PlayerTwo, Storehouse }
+
 public class Hole : MonoBehaviour
 {
-    [Header("Hole Settings")]
-    [SerializeField] private HoleType holeType = HoleType.Regular;
-    [SerializeField] private int holeIndex = 0; // Always 0–6 for Player or Opponent
     [SerializeField] private Transform seedContainer;
-    [SerializeField] private MeshRenderer holeRenderer;
-    [SerializeField] private TextMeshProUGUI seedText; // Optional TMP overlay
+    [SerializeField] private TMP_Text seedText;
+    [SerializeField] private HoleType holeType;
+    [SerializeField] private int holeIndex;
 
-    private int seedCount;
-    private bool isProtected = false;
+    private int seedCount = 0;
 
-    private Color normalColor = Color.white;
-    private Color protectedColor = Color.gray;
+    public HoleType GetHoleType() => holeType;
+    public int GetHoleIndex() => holeIndex;
 
-    private void Awake()
-    {
-        if (holeRenderer == null)
-            holeRenderer = GetComponent<MeshRenderer>();
-    }
+    public void SetHoleIndex(int index) => holeIndex = index;
+    public void SetHoleType(HoleType type) => holeType = type;
 
-    // --- Seed Management ---
-    public void SetSeedCount(int count)
+    public void SetSeeds(int count)
     {
         seedCount = count;
-        if (seedText != null)
-            seedText.text = seedCount.ToString();
+        UpdateUI();
     }
 
     public int GetSeedCount() => seedCount;
 
-    // --- Hole Metadata ---
-    public int GetHoleIndex() => holeIndex;
-    public HoleType GetHoleType() => holeType;
-    public Transform GetSeedContainer() => seedContainer;
-
-    // --- Player Ownership ---
-    public bool BelongsToCurrentPlayer()
+    public void AddSeed()
     {
-        if (GameManager.Instance == null) return false;
-        if (holeType != HoleType.Regular) return false;
-
-        int currentPlayer = GameManager.Instance.currentPlayer;
-
-        // ✅ We only check turn here
-        // GameManager.IsValidMove(holeIndex) already verifies seeds + protection
-        if (currentPlayer == 1) return true;
-        if (currentPlayer == 2) return true;
-
-        return false;
+        seedCount++;
+        UpdateUI();
     }
 
-    // --- Protected Hole (Ngacang) ---
-    public void SetProtected(bool state)
+    public int TakeAllSeeds()
     {
-        isProtected = state;
+        int taken = seedCount;
+        seedCount = 0;
+        UpdateUI();
+        return taken;
+    }
 
-        if (holeRenderer != null)
-            holeRenderer.material.color = state ? protectedColor : normalColor;
-
+    private void UpdateUI()
+    {
         if (seedText != null)
-            seedText.color = state ? protectedColor : normalColor;
+            seedText.text = seedCount.ToString();
     }
-
-    public bool IsProtected() => isProtected;
-}
-
-public enum HoleType
-{
-    Regular,
-    Storehouse
 }
