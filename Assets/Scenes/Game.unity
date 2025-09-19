@@ -145,6 +145,9 @@ MonoBehaviour:
   seedText: {fileID: 1904977866}
   holeType: 1
   holeIndex: 5
+  spawnMode: 0
+  seedScale: 500
+  spawnTightness: 0.3
 --- !u!114 &11277910
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -159,8 +162,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   seedContainer: {fileID: 1379004402}
   seedText: {fileID: 1904977866}
-  holeType: 1
+  holeType: 2
   holeIndex: 7
+  spawnMode: 0
+  seedScale: 500
+  spawnTightness: 0.3
 --- !u!114 &11277911
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -607,6 +613,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   seedPrefab: {fileID: 4214663283842181509, guid: 636113ca94bfd9243965f6207ae215bb,
     type: 3}
+  initialPoolSize: 100
 --- !u!4 &86765954
 Transform:
   m_ObjectHideFlags: 0
@@ -1106,7 +1113,7 @@ RectTransform:
   m_Father: {fileID: 2015442734}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 0.2}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -1189,6 +1196,9 @@ MonoBehaviour:
   seedText: {fileID: 1904977866}
   holeType: 0
   holeIndex: 5
+  spawnMode: 0
+  seedScale: 500
+  spawnTightness: 0.3
 --- !u!4 &310337972 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7016815218531800260, guid: 9001398206fadce4d95f59627d902867,
@@ -1536,7 +1546,7 @@ Transform:
   m_GameObject: {fileID: 436978604}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 3.318115, y: 1.147, z: 0.69697}
+  m_LocalPosition: {x: 3.339, y: 0.996, z: 0.69697}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2411,10 +2421,7 @@ MonoBehaviour:
   - {fileID: 1189524642}
   playerOneStorehouse: {fileID: 8479509460235988473}
   playerTwoStorehouse: {fileID: 11277910}
-  uiController: {fileID: 453626924}
   seedsPerHole: 7
-  isPlayerOneTurn: 1
-  isGameActive: 0
 --- !u!114 &673119063
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2431,6 +2438,9 @@ MonoBehaviour:
   seedText: {fileID: 1904977866}
   holeType: 1
   holeIndex: 2
+  spawnMode: 0
+  seedScale: 500
+  spawnTightness: 0.3
 --- !u!1 &677373185
 GameObject:
   m_ObjectHideFlags: 0
@@ -2700,6 +2710,84 @@ MonoBehaviour:
   seedText: {fileID: 1904977866}
   holeType: 1
   holeIndex: 0
+  spawnMode: 0
+  seedScale: 500
+  spawnTightness: 0.3
+--- !u!1 &737959658
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 737959659}
+  - component: {fileID: 737959661}
+  - component: {fileID: 737959660}
+  m_Layer: 0
+  m_Name: SettingBG
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &737959659
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 737959658}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1083488288}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 400, y: 300}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &737959660
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 737959658}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.039215688}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &737959661
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 737959658}
+  m_CullTransparentMesh: 1
 --- !u!1 &752966065
 GameObject:
   m_ObjectHideFlags: 0
@@ -3287,7 +3375,7 @@ Canvas:
   m_GameObject: {fileID: 902430618}
   m_Enabled: 1
   serializedVersion: 3
-  m_RenderMode: 0
+  m_RenderMode: 1
   m_Camera: {fileID: 436978606}
   m_PlaneDistance: 0.5
   m_PixelPerfect: 0
@@ -3433,6 +3521,9 @@ MonoBehaviour:
   seedText: {fileID: 1904977866}
   holeType: 0
   holeIndex: 4
+  spawnMode: 0
+  seedScale: 500
+  spawnTightness: 0.3
 --- !u!1 &968345383
 GameObject:
   m_ObjectHideFlags: 0
@@ -3813,10 +3904,11 @@ RectTransform:
   m_GameObject: {fileID: 1083488287}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2.8644412, y: 2.745183, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1964265375}
+  - {fileID: 737959659}
   - {fileID: 553324142}
   - {fileID: 989824434}
   - {fileID: 514087094}
@@ -3949,7 +4041,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4281479730
   m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -3962,7 +4054,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -4033,6 +4125,9 @@ MonoBehaviour:
   seedText: {fileID: 1904977866}
   holeType: 1
   holeIndex: 6
+  spawnMode: 0
+  seedScale: 500
+  spawnTightness: 0.3
 --- !u!4 &1247620212 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 924690392310143635, guid: 9001398206fadce4d95f59627d902867,
@@ -4795,7 +4890,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 245420667}
   m_Direction: 2
   m_Value: 0
-  m_Size: 0.2
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -5199,6 +5294,9 @@ MonoBehaviour:
   seedText: {fileID: 1904977866}
   holeType: 1
   holeIndex: 3
+  spawnMode: 0
+  seedScale: 500
+  spawnTightness: 0.3
 --- !u!1 &1542945002
 GameObject:
   m_ObjectHideFlags: 0
@@ -5382,6 +5480,9 @@ MonoBehaviour:
   seedText: {fileID: 1904977866}
   holeType: 0
   holeIndex: 6
+  spawnMode: 0
+  seedScale: 500
+  spawnTightness: 0.3
 --- !u!65 &1611342732
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -5863,7 +5964,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -18, y: 0}
+  m_SizeDelta: {x: -17, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1691230755
 MonoBehaviour:
@@ -6085,6 +6186,9 @@ MonoBehaviour:
   seedText: {fileID: 1904977866}
   holeType: 1
   holeIndex: 1
+  spawnMode: 0
+  seedScale: 500
+  spawnTightness: 0.3
 --- !u!4 &1760800837 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7893619236003272914, guid: 9001398206fadce4d95f59627d902867,
@@ -6786,7 +6890,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1904977864}
   m_LocalRotation: {x: -0, y: -0, z: 1.7763568e-15, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.845}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.01, y: 0.01, z: 0.01}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6794,7 +6898,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -1916.649, y: -1079.3269}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1904977866
@@ -7065,6 +7169,9 @@ MonoBehaviour:
   seedText: {fileID: 1904977866}
   holeType: 1
   holeIndex: 4
+  spawnMode: 0
+  seedScale: 500
+  spawnTightness: 0.3
 --- !u!1 &2015442733
 GameObject:
   m_ObjectHideFlags: 0
@@ -7350,13 +7457,53 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 550310571817252683, guid: 9001398206fadce4d95f59627d902867,
         type: 3}
+      propertyPath: holeType
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 550310571817252683, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: seedText
+      value: 
+      objectReference: {fileID: 1904977866}
+    - target: {fileID: 550310571817252683, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: holeIndex
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 550310571817252683, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
       propertyPath: seedContainer
       value: 
       objectReference: {fileID: 339835837}
+    - target: {fileID: 607662612361553139, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: holeType
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 607662612361553139, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: seedText
+      value: 
+      objectReference: {fileID: 1904977866}
+    - target: {fileID: 607662612361553139, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: holeIndex
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 672608043939408479, guid: 9001398206fadce4d95f59627d902867,
         type: 3}
       propertyPath: m_Layer
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 747031573552171147, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: seedText
+      value: 
+      objectReference: {fileID: 1904977866}
+    - target: {fileID: 747031573552171147, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: holeIndex
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 834642915497370250, guid: 9001398206fadce4d95f59627d902867,
         type: 3}
@@ -7403,6 +7550,11 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1275486211851743404, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: seedText
+      value: 
+      objectReference: {fileID: 1904977866}
     - target: {fileID: 1431268957027738746, guid: 9001398206fadce4d95f59627d902867,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -7523,6 +7675,21 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 3145835260894493725, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: holeType
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3145835260894493725, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: seedText
+      value: 
+      objectReference: {fileID: 1904977866}
+    - target: {fileID: 3145835260894493725, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: holeIndex
+      value: 6
+      objectReference: {fileID: 0}
     - target: {fileID: 3309434455620275707, guid: 9001398206fadce4d95f59627d902867,
         type: 3}
       propertyPath: m_Enabled
@@ -7553,6 +7720,31 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3618434500573183663, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: seedText
+      value: 
+      objectReference: {fileID: 1904977866}
+    - target: {fileID: 3618434500573183663, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: holeIndex
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3640594257339017640, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: holeType
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3640594257339017640, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: seedText
+      value: 
+      objectReference: {fileID: 1904977866}
+    - target: {fileID: 3640594257339017640, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: holeIndex
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 3657365697198029074, guid: 9001398206fadce4d95f59627d902867,
         type: 3}
       propertyPath: m_LocalPosition.y
@@ -7562,6 +7754,21 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Layer
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3773123187357902171, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: holeType
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3773123187357902171, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: seedText
+      value: 
+      objectReference: {fileID: 1904977866}
+    - target: {fileID: 3773123187357902171, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: holeIndex
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3869543546555891047, guid: 9001398206fadce4d95f59627d902867,
         type: 3}
@@ -7592,6 +7799,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4007530608664052193, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: seedText
+      value: 
+      objectReference: {fileID: 1904977866}
+    - target: {fileID: 4007530608664052193, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: holeIndex
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 4031567377816125830, guid: 9001398206fadce4d95f59627d902867,
         type: 3}
@@ -7713,6 +7930,21 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5507278783775838545, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: holeType
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5507278783775838545, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: seedText
+      value: 
+      objectReference: {fileID: 1904977866}
+    - target: {fileID: 5507278783775838545, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: holeIndex
+      value: 4
+      objectReference: {fileID: 0}
     - target: {fileID: 5510542557101158631, guid: 9001398206fadce4d95f59627d902867,
         type: 3}
       propertyPath: m_Layer
@@ -7735,6 +7967,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5555321042663240841, guid: 9001398206fadce4d95f59627d902867,
         type: 3}
+      propertyPath: seedText
+      value: 
+      objectReference: {fileID: 1904977866}
+    - target: {fileID: 5555321042663240841, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: holeIndex
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 5555321042663240841, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
       propertyPath: seedContainer
       value: 
       objectReference: {fileID: 258150155}
@@ -7742,6 +7984,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5730283107684730596, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: seedText
+      value: 
+      objectReference: {fileID: 1904977866}
+    - target: {fileID: 5730283107684730596, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: holeIndex
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 5808702298809364188, guid: 9001398206fadce4d95f59627d902867,
         type: 3}
@@ -7768,6 +8020,16 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 5850454772316247993, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: holeType
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5850454772316247993, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: seedText
+      value: 
+      objectReference: {fileID: 1904977866}
     - target: {fileID: 5872843136979053906, guid: 9001398206fadce4d95f59627d902867,
         type: 3}
       propertyPath: m_LocalPosition.y
@@ -7973,6 +8235,16 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 7846953569947176620, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: seedText
+      value: 
+      objectReference: {fileID: 1904977866}
+    - target: {fileID: 7846953569947176620, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: holeIndex
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 7893619236003272914, guid: 9001398206fadce4d95f59627d902867,
         type: 3}
       propertyPath: m_LocalPosition.y
@@ -8013,6 +8285,21 @@ PrefabInstance:
       propertyPath: m_LocalPosition.y
       value: -0.000109
       objectReference: {fileID: 0}
+    - target: {fileID: 8645542600011351582, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: holeType
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8645542600011351582, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: seedText
+      value: 
+      objectReference: {fileID: 1904977866}
+    - target: {fileID: 8645542600011351582, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: holeIndex
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 8785468115981799680, guid: 9001398206fadce4d95f59627d902867,
         type: 3}
       propertyPath: m_LocalPosition.y
@@ -8036,6 +8323,21 @@ PrefabInstance:
     - target: {fileID: 8899075727055943621, guid: 9001398206fadce4d95f59627d902867,
         type: 3}
       propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8961601739015658761, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: holeType
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8961601739015658761, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: seedText
+      value: 
+      objectReference: {fileID: 1904977866}
+    - target: {fileID: 8961601739015658761, guid: 9001398206fadce4d95f59627d902867,
+        type: 3}
+      propertyPath: holeIndex
       value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 9041195145068506629, guid: 9001398206fadce4d95f59627d902867,
@@ -8097,6 +8399,7 @@ PrefabInstance:
     - {fileID: 2375278769674351525, guid: 9001398206fadce4d95f59627d902867, type: 3}
     - {fileID: 1265208608334466355, guid: 9001398206fadce4d95f59627d902867, type: 3}
     - {fileID: 4004363182701243413, guid: 9001398206fadce4d95f59627d902867, type: 3}
+    - {fileID: 8874645824184933634, guid: 9001398206fadce4d95f59627d902867, type: 3}
     m_RemovedGameObjects:
     - {fileID: 4415663766368248601, guid: 9001398206fadce4d95f59627d902867, type: 3}
     - {fileID: 1368315065870176405, guid: 9001398206fadce4d95f59627d902867, type: 3}
@@ -8478,6 +8781,9 @@ MonoBehaviour:
   seedText: {fileID: 1904977866}
   holeType: 0
   holeIndex: 3
+  spawnMode: 0
+  seedScale: 500
+  spawnTightness: 0.3
 --- !u!114 &8479509460235988469
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8494,6 +8800,9 @@ MonoBehaviour:
   seedText: {fileID: 1904977866}
   holeType: 0
   holeIndex: 2
+  spawnMode: 0
+  seedScale: 500
+  spawnTightness: 0.3
 --- !u!114 &8479509460235988470
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8510,6 +8819,9 @@ MonoBehaviour:
   seedText: {fileID: 1904977866}
   holeType: 0
   holeIndex: 1
+  spawnMode: 0
+  seedScale: 500
+  spawnTightness: 0.3
 --- !u!114 &8479509460235988471
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8526,6 +8838,9 @@ MonoBehaviour:
   seedText: {fileID: 1904977866}
   holeType: 0
   holeIndex: 0
+  spawnMode: 0
+  seedScale: 500
+  spawnTightness: 0.3
 --- !u!114 &8479509460235988472
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8553,8 +8868,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   seedContainer: {fileID: 339835837}
   seedText: {fileID: 1904977866}
-  holeType: 0
+  holeType: 2
   holeIndex: 7
+  spawnMode: 0
+  seedScale: 500
+  spawnTightness: 0.3
 --- !u!114 &8479509460235988474
 MonoBehaviour:
   m_ObjectHideFlags: 0

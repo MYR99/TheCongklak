@@ -20,15 +20,28 @@ public class PlayerInputController : MonoBehaviour
                 Hole hole = hit.collider.GetComponent<Hole>();
                 if (hole != null)
                 {
-                    // ambil seeds
+                    // --- Cek apakah hole milik player yang sedang jalan ---
+                    bool isPlayerOneTurn = GameManager.Instance.CurrentPlayer == 1;
+                    bool isValid =
+                        (isPlayerOneTurn && hole.GetHoleType() == HoleType.PlayerOne) ||
+                        (!isPlayerOneTurn && hole.GetHoleType() == HoleType.PlayerTwo);
+
+                    if (!isValid)
+                    {
+                        Debug.Log("❌ Tidak boleh pilih lubang lawan!");
+                        return;
+                    }
+
+                    // --- Ambil seeds kalau valid ---
                     int seeds = hole.TakeAllSeeds();
                     if (seeds > 0)
                     {
-                        Debug.Log($"Picked hole {hole.GetHoleType()} index {hole.GetHoleIndex()} with {seeds} seeds");
-
-                        // TODO: di sini jalankan sowing/distribution pakai GameManager
-                        // sementara panggil OnTurnFinished
-                        GameManager.Instance.OnTurnFinished();
+                        Debug.Log($"✅ Picked hole {hole.GetHoleType()} index {hole.GetHoleIndex()} with {seeds} seeds");
+                        
+                        // Mulai proses sowing (penyebaran biji)
+                        GameManager.Instance.StartCoroutine(
+                            GameManager.Instance.SowSeeds(hole, seeds)
+                        );
                     }
                 }
             }

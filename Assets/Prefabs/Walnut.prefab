@@ -145,9 +145,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  holeIndex: 0
-  holeType: 0
-  playerOwner: 0
-  seedCountText: {fileID: 0}
   seedContainer: {fileID: 0}
-  currentSeedCount: 0
+  seedText: {fileID: 0}
+  holeType: 0
+  holeIndex: 0

@@ -67,11 +67,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 7368305461121371244}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 7368305461121371244}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &495462448362614633
 GameObject:
   m_ObjectHideFlags: 0
@@ -139,11 +138,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 361477080149840312}
+  seedText: {fileID: 0}
   holeType: 1
   holeIndex: 0
-  seedContainer: {fileID: 361477080149840312}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &672608043939408479
 GameObject:
   m_ObjectHideFlags: 0
@@ -232,11 +230,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 3967546121145590364}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 3967546121145590364}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &1250444105337758260
 GameObject:
   m_ObjectHideFlags: 0
@@ -304,11 +301,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 393584454195524752}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 393584454195524752}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &2423586949686921383
 GameObject:
   m_ObjectHideFlags: 0
@@ -320,7 +316,6 @@ GameObject:
   - component: {fileID: 361477080149840312}
   - component: {fileID: 1093434603817074696}
   - component: {fileID: 8645542600011351582}
-  - component: {fileID: 5190046357212051058}
   m_Layer: 0
   m_Name: SeedContainer
   m_TagString: Untagged
@@ -397,28 +392,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 361477080149840312}
+  seedText: {fileID: 0}
   holeType: 1
   holeIndex: 0
-  seedContainer: {fileID: 361477080149840312}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
---- !u!114 &5190046357212051058
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2423586949686921383}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  holeType: 0
-  holeIndex: 0
-  seedContainer: {fileID: 0}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &2918693435585402953
 GameObject:
   m_ObjectHideFlags: 0
@@ -486,11 +463,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 4801329670391010969}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 4801329670391010969}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &3040576782023281549
 GameObject:
   m_ObjectHideFlags: 0
@@ -579,11 +555,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 1693826978745367442}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 1693826978745367442}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &3490325627302084406
 GameObject:
   m_ObjectHideFlags: 0
@@ -672,11 +647,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 4801329670391010969}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 4801329670391010969}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &3526072252550177335
 GameObject:
   m_ObjectHideFlags: 0
@@ -744,11 +718,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 3657365697198029074}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 3657365697198029074}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &3683744406295805373
 GameObject:
   m_ObjectHideFlags: 0
@@ -837,11 +810,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 4031567377816125830}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 4031567377816125830}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &3869543546555891047
 GameObject:
   m_ObjectHideFlags: 0
@@ -930,11 +902,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 5959178875953445759}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 5959178875953445759}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &3890321724393746301
 GameObject:
   m_ObjectHideFlags: 0
@@ -1023,11 +994,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 1655141805482895587}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 1655141805482895587}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &3922000918620685260
 GameObject:
   m_ObjectHideFlags: 0
@@ -1095,11 +1065,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 3967546121145590364}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 3967546121145590364}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &4320103324528013621
 GameObject:
   m_ObjectHideFlags: 0
@@ -1167,11 +1136,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 7893619236003272914}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 7893619236003272914}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &4952933632003133504
 GameObject:
   m_ObjectHideFlags: 0
@@ -1239,11 +1207,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 5374650313784979281}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 5374650313784979281}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &5205205106592731244
 GameObject:
   m_ObjectHideFlags: 0
@@ -1311,11 +1278,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 7829422138482294481}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 7829422138482294481}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &5404424431488628302
 GameObject:
   m_ObjectHideFlags: 0
@@ -1383,11 +1349,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 924690392310143635}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 924690392310143635}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &5510542557101158631
 GameObject:
   m_ObjectHideFlags: 0
@@ -1476,11 +1441,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 3657365697198029074}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 3657365697198029074}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &5808702298809364188
 GameObject:
   m_ObjectHideFlags: 0
@@ -1548,11 +1512,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 4031567377816125830}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 4031567377816125830}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &5840084983815370046
 GameObject:
   m_ObjectHideFlags: 0
@@ -1620,11 +1583,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 5959178875953445759}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 5959178875953445759}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &6199249809242455054
 GameObject:
   m_ObjectHideFlags: 0
@@ -1712,11 +1674,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 6917486283762706494}
+  seedText: {fileID: 0}
   holeType: 1
   holeIndex: 0
-  seedContainer: {fileID: 6917486283762706494}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &6199812885461731279
 GameObject:
   m_ObjectHideFlags: 0
@@ -1805,11 +1766,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 5374650313784979281}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 5374650313784979281}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &7378190095935389573
 GameObject:
   m_ObjectHideFlags: 0
@@ -1877,11 +1837,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 1655141805482895587}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 1655141805482895587}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &7446745412411724147
 GameObject:
   m_ObjectHideFlags: 0
@@ -1949,11 +1908,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 1693826978745367442}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 1693826978745367442}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &7648697815441049181
 GameObject:
   m_ObjectHideFlags: 0
@@ -2096,11 +2054,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 393584454195524752}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 393584454195524752}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &8162835485404024119
 GameObject:
   m_ObjectHideFlags: 0
@@ -2168,11 +2125,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 7016815218531800260}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 7016815218531800260}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &8380371216845614463
 GameObject:
   m_ObjectHideFlags: 0
@@ -2261,11 +2217,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 7368305461121371244}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 7368305461121371244}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &8524110184051535382
 GameObject:
   m_ObjectHideFlags: 0
@@ -2354,11 +2309,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 7016815218531800260}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 7016815218531800260}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &8878635961217395890
 GameObject:
   m_ObjectHideFlags: 0
@@ -2448,11 +2402,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 924690392310143635}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 924690392310143635}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!114 &8874645824184933634
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2465,11 +2418,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 0}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 0}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &8899075727055943621
 GameObject:
   m_ObjectHideFlags: 0
@@ -2558,11 +2510,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 7893619236003272914}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 7893619236003272914}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1 &9041195145068506629
 GameObject:
   m_ObjectHideFlags: 0
@@ -2651,11 +2602,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seedContainer: {fileID: 7829422138482294481}
+  seedText: {fileID: 0}
   holeType: 0
   holeIndex: 0
-  seedContainer: {fileID: 7829422138482294481}
-  holeRenderer: {fileID: 0}
-  seedText: {fileID: 0}
 --- !u!1001 &1581704457260540097
 PrefabInstance:
   m_ObjectHideFlags: 0
