@@ -8,7 +8,7 @@ public class GameConfig : ScriptableObject
     public int initialSeedsPerHole = 7;
 
     [Tooltip("Delay between each seeded drop when animating (seconds)")]
-    public float animationSpeed = 0.12f;
+    public float animationSpeed = 0.1f;
 
     [Header("Audio Settings")]
     public float musicVolume = 0.7f;
@@ -20,21 +20,5 @@ public class GameConfig : ScriptableObject
     public GameMode gameMode = GameMode.PlayerVsPlayer;
 }
 
-/// <summary>
-/// Difficulty options for an optional AI opponent.
-/// </summary>
-public enum AILevel
-{
-    Easy = 0,
-    Medium = 1,
-    Hard = 2
-}
-
-/// <summary>
-/// Game mode selection.
-/// </summary>
-public enum GameMode
-{
-    PlayerVsPlayer = 0,
-    PlayerVsAI = 1
-}
+public enum AILevel { Easy, Medium, Hard }
+public enum GameMode { PlayerVsPlayer, PlayerVsAI }

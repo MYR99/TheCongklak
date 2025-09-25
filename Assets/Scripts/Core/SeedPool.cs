@@ -3,74 +3,47 @@ using UnityEngine;
 
 public class SeedPool : MonoBehaviour
 {
-    public static SeedPool Instance;
+    public static SeedPool Instance { get; private set; }
 
-    [Header("Seed Pool Settings")]
-    [SerializeField] private GameObject seedPrefab;   // prefab biji
-    [SerializeField] private int initialPoolSize = 100; 
+    [SerializeField] private GameObject seedPrefab;
 
-    private Queue<GameObject> availableSeeds = new Queue<GameObject>();
+    [Header("Global Settings")]
+    [SerializeField] private float seedScale = 1f; // scale global
+
+    private Stack<GameObject> pool = new Stack<GameObject>();
 
     private void Awake()
     {
-        if (Instance == null)
-            Instance = this;
-        else if (Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        // fallback kalau prefab belum diassign → buat sphere default
-        if (seedPrefab == null)
-        {
-            Debug.LogWarning("⚠️ SeedPrefab belum diassign, membuat sphere default.");
-            seedPrefab = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            var collider = seedPrefab.GetComponent<Collider>();
-            if (collider != null) Destroy(collider); // hapus collider supaya tidak ganggu raycast
-        }
-
-        FillPool(initialPoolSize);
-    }
-
-    private void FillPool(int count)
-    {
-        for (int i = 0; i < count; i++)
-        {
-            GameObject seed = Instantiate(seedPrefab, transform);
-            seed.SetActive(false);
-            availableSeeds.Enqueue(seed);
-        }
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
     }
 
     public GameObject GetSeed()
     {
-        if (availableSeeds.Count == 0)
-        {
-            FillPool(10);
-        }
-
-        GameObject seed = availableSeeds.Dequeue();
-
-        if (seed == null)
-        {
-            Debug.LogWarning("⚠️ Seed prefab null, membuat Sphere default.");
-            seed = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        }
-
-        // aktifkan & set ukuran 500f
+        GameObject seed = pool.Count > 0 ? pool.Pop() : Instantiate(seedPrefab);
         seed.SetActive(true);
-        seed.transform.localScale = Vector3.one * 500f;
 
-        Debug.Log($"🌱 Spawn seed {seed.name} dengan scale {seed.transform.localScale}");
+        // scale & reset transform
+        seed.transform.localScale = Vector3.one * seedScale;
+        seed.transform.rotation = Quaternion.identity;
+        seed.transform.localPosition = Vector3.zero;
 
         return seed;
     }
 
     public void ReturnSeed(GameObject seed)
     {
+        if (seed == null) return;
         seed.SetActive(false);
         seed.transform.SetParent(transform);
-        availableSeeds.Enqueue(seed);
+        seed.transform.localPosition = Vector3.zero;
+        seed.transform.localRotation = Quaternion.identity;
+        pool.Push(seed);
+    }
+
+    // ✅ tambahan untuk Hole.cs
+    public float GetSeedScale()
+    {
+        return seedScale;
     }
 }

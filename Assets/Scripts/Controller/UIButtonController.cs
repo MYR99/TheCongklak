@@ -3,49 +3,62 @@ using UnityEngine.SceneManagement;
 
 public class UIButtonController : MonoBehaviour
 {
-    // ✅ restart game
-    public void OnRestartGame()
+    [Header("References")]
+    [SerializeField] private GameManager gameManager;
+    [SerializeField] private UIController uiController;
+
+    private void Awake()
     {
-        Debug.Log("Restart button clicked!");
-        if (GameManager.Instance != null)
+        if (gameManager == null) gameManager = GameManager.Instance;
+        if (uiController == null) uiController = FindObjectOfType<UIController>();
+    }
+
+    // ========= MAIN BUTTONS =========
+    public void OnRestartButton()
+    {
+        if (gameManager != null)
         {
-            GameManager.Instance.RestartGame();
+            gameManager.RestartGame();
+            if (uiController != null) uiController.HideGameOver();
+
+            Debug.Log("[UIButtonController] Restart pressed");
         }
-        else
-        {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-        }
     }
 
-    // ✅ buka settings
-    public void OnOpenSettings(GameObject settingsPanel)
+    public void OnExitButton()
     {
-        if (settingsPanel != null)
-            settingsPanel.SetActive(true);
-    }
-
-    // ✅ tutup settings
-    public void OnCloseSettings(GameObject settingsPanel)
-    {
-        if (settingsPanel != null)
-            settingsPanel.SetActive(false);
-    }
-
-    // ✅ exit game
-    public void OnExitGame()
-    {
-        Debug.Log("Exit button clicked!");
+        Debug.Log("[UIButtonController] Exit pressed");
 #if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false; 
+        UnityEditor.EditorApplication.isPlaying = false;
 #else
-        Application.Quit(); 
+        Application.Quit();
 #endif
     }
 
-    // ✅ play again dari game end panel
-    public void OnPlayAgain()
+    public void OnSettingsButton()
     {
-        Debug.Log("Play Again button clicked!");
-        OnRestartGame();
+        if (uiController != null)
+        {
+            bool active = uiController.settingsPanel.activeSelf;
+            uiController.settingsPanel.SetActive(!active);
+            Debug.Log("[UIButtonController] Settings toggled " + (!active ? "ON" : "OFF"));
+        }
+    }
+
+    // ========= SETTINGS CALLBACKS =========
+    public void OnDifficultyChanged(int index)
+    {
+        if (uiController != null && uiController.difficultyDropdown != null)
+        {
+            Debug.Log($"[UIButtonController] Difficulty changed: {uiController.difficultyDropdown.options[index].text}");
+        }
+    }
+
+    public void OnToggleSound(bool isOn)
+    {
+        if (uiController != null)
+        {
+            Debug.Log("[UIButtonController] Sound toggled: " + (isOn ? "ON" : "OFF"));
+        }
     }
 }

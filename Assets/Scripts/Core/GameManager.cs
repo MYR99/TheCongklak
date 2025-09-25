@@ -1,203 +1,288 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager Instance;
+    public static GameManager Instance { get; private set; }
 
-    [Header("Board Setup - 7 Holes Per Player")]
-    public Hole[] playerOneHoles;
-    public Hole[] playerTwoHoles;
-    public Hole playerOneStorehouse;
-    public Hole playerTwoStorehouse;
+    [Header("Board References")]
+    [SerializeField] private Hole[] playerOneHoles;
+    [SerializeField] private Hole[] playerTwoHoles;
+    [SerializeField] private Hole playerOneStorehouse;
+    [SerializeField] private Hole playerTwoStorehouse;
 
-    [Header("Config")]
-    public int seedsPerHole = 7;
+    [Header("Gameplay Settings")]
+    [SerializeField] private int startingSeeds = 7;
+    [SerializeField] private float seedMoveSpeed = 2f;
+    [SerializeField] private float liftHeight = 0.8f;
+    [SerializeField] private float moveDuration = 0.3f;
 
-    // --- Game State ---
-    public int CurrentPlayer { get; private set; } = 1; // 1 = PlayerOne, 2 = PlayerTwo
-    private bool isGameActive = false;
-    public bool IsGameActive => isGameActive; // read-only property
+    [Header("References")]
+    [SerializeField] private UIController uiController;
+
+    [Header("Debug")]
+    [SerializeField] private bool showDebug = true;
+
+    private int currentPlayer = 1;
+    private bool isSowing = false;
+    private bool isGameActive = true;
+
+    public int CurrentPlayer => currentPlayer;
+    public bool IsGameActive => isGameActive;
 
     private void Awake()
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
+
+        // Auto set type & index
+        for (int i = 0; i < playerOneHoles.Length; i++)
+        {
+            playerOneHoles[i].SetIndex(i);
+            playerOneHoles[i].SetHoleType(HoleType.PlayerOne);
+        }
+
+        for (int i = 0; i < playerTwoHoles.Length; i++)
+        {
+            playerTwoHoles[i].SetIndex(i);
+            playerTwoHoles[i].SetHoleType(HoleType.PlayerTwo);
+        }
+
+        playerOneStorehouse.SetHoleType(HoleType.Storehouse);
+        playerTwoStorehouse.SetHoleType(HoleType.Storehouse);
     }
 
     private void Start()
     {
-        StartNewGame();
+        SetupBoard();
     }
 
-    public void StartNewGame()
+    // ========= SETUP =========
+    private void SetupBoard()
     {
-        // Reset holes
-        foreach (var hole in playerOneHoles) hole.SetSeeds(seedsPerHole);
-        foreach (var hole in playerTwoHoles) hole.SetSeeds(seedsPerHole);
+        foreach (var hole in playerOneHoles) hole.SetSeeds(startingSeeds);
+        foreach (var hole in playerTwoHoles) hole.SetSeeds(startingSeeds);
 
-        playerOneStorehouse.SetSeeds(0);
-        playerTwoStorehouse.SetSeeds(0);
+        playerOneStorehouse.ClearSeeds();
+        playerTwoStorehouse.ClearSeeds();
 
-        CurrentPlayer = 1;
+        currentPlayer = 1;
         isGameActive = true;
 
-        Debug.Log("🎮 Game dimulai, giliran Player One");
+        UpdateUI();
+        if (showDebug) Debug.Log("[GameManager] Board setup complete");
     }
 
-    // --- Restart game untuk dipanggil dari UI ---
     public void RestartGame()
     {
-        StartNewGame();
+        StopAllCoroutines();
+        SetupBoard();
+        if (showDebug) Debug.Log("[GameManager] Game restarted");
     }
 
-    // --- Validasi move ---
+    // ========= INPUT =========
+    public void SelectHole(Hole hole)
+    {
+        if (!isGameActive) return;
+        if (IsValidMove(hole))
+        {
+            PlayMove(hole);
+        }
+        else
+        {
+            if (showDebug) Debug.Log("[GameManager] Invalid hole selected: " + hole.name);
+        }
+    }
+
     public bool IsValidMove(Hole hole)
     {
-        if (!isGameActive) return false;
+        if (hole == null) return false;
+        if (hole.GetHoleType() == HoleType.Storehouse) return false;
         if (hole.GetSeedCount() == 0) return false;
 
-        if (CurrentPlayer == 1 && hole.GetHoleType() == HoleType.PlayerOne)
-            return true;
-        if (CurrentPlayer == 2 && hole.GetHoleType() == HoleType.PlayerTwo)
-            return true;
+        if (currentPlayer == 1 && hole.GetHoleType() != HoleType.PlayerOne) return false;
+        if (currentPlayer == 2 && hole.GetHoleType() != HoleType.PlayerTwo) return false;
 
-        return false;
+        return true;
     }
 
-    // --- Main sowing routine ---
-    public IEnumerator SowSeeds(Hole startHole, int seeds)
+    public void PlayMove(Hole hole)
     {
-        Debug.Log($"🌱 Menyebar {seeds} biji dari {startHole.name}");
+        if (isSowing || !IsValidMove(hole)) return;
+        StartCoroutine(SowSeedsCoroutine(hole));
+    }
+
+    // ========= SOWING =========
+    private IEnumerator SowSeedsCoroutine(Hole startHole)
+    {
+        isSowing = true;
+        List<GameObject> seedsToSow = startHole.TakeAllSeedObjects();
+        int seedCount = seedsToSow.Count;
         Hole currentHole = startHole;
 
-        while (seeds > 0)
+        if (showDebug) Debug.Log($"[Sow] Player {currentPlayer} sowing {seedCount} seeds from {startHole.name}");
+
+        for (int i = 0; i < seedCount; i++)
         {
             currentHole = GetNextHole(currentHole);
-
-            // skip storehouse lawan
-            if ((CurrentPlayer == 1 && currentHole == playerTwoStorehouse) ||
-                (CurrentPlayer == 2 && currentHole == playerOneStorehouse))
-            {
-                continue;
-            }
-
-            currentHole.AddSeed();
-            seeds--;
-
-            yield return new WaitForSeconds(0.2f);
+            GameObject seed = seedsToSow[i];
+            yield return AnimateSeed(seed, currentHole);
+            if (showDebug) Debug.Log($"[Sow] Seed {i + 1}/{seedCount} landed in {currentHole.name}");
         }
 
-        HandleTurnEnd(currentHole);
-        CheckGameOver();
+        yield return HandleTurnEnd(currentHole);
+
+        UpdateUI();
+        isSowing = false;
     }
 
-    // --- Aturan setelah sowing ---
-    private void HandleTurnEnd(Hole lastHole)
+    private IEnumerator AnimateSeed(GameObject seed, Hole targetHole)
     {
-        // 1. Extra turn kalau terakhir jatuh di storehouse sendiri
-        if ((CurrentPlayer == 1 && lastHole == playerOneStorehouse) ||
-            (CurrentPlayer == 2 && lastHole == playerTwoStorehouse))
+        if (seed == null || targetHole == null) yield break;
+
+        Vector3 start = seed.transform.position;
+        Vector3 lift = start + Vector3.up * liftHeight;
+        Vector3 dropTarget = targetHole.transform.position + targetHole.GetRandomSeedPosition();
+
+        float elapsed = 0f;
+        while (elapsed < moveDuration)
         {
-            Debug.Log("🔄 Extra turn!");
-            return;
+            elapsed += Time.deltaTime * seedMoveSpeed;
+            seed.transform.position = Vector3.Lerp(start, lift, elapsed / moveDuration);
+            yield return null;
         }
 
-        // 2. Capture kalau terakhir jatuh di lubang kosong milik sendiri
-        if (lastHole.GetSeedCount() == 1)
+        elapsed = 0f;
+        while (elapsed < moveDuration)
         {
-            if (CurrentPlayer == 1 && lastHole.GetHoleType() == HoleType.PlayerOne)
-            {
-                int idx = lastHole.GetHoleIndex();
-                int captured = playerTwoHoles[idx].TakeAllSeeds();
-                if (captured > 0)
-                {
-                    playerOneStorehouse.SetSeeds(playerOneStorehouse.GetSeedCount() + captured + 1);
-                    lastHole.TakeAllSeeds();
-                    Debug.Log($"🎯 PlayerOne capture {captured} biji!");
-                }
-            }
-            else if (CurrentPlayer == 2 && lastHole.GetHoleType() == HoleType.PlayerTwo)
-            {
-                int idx = lastHole.GetHoleIndex();
-                int captured = playerOneHoles[idx].TakeAllSeeds();
-                if (captured > 0)
-                {
-                    playerTwoStorehouse.SetSeeds(playerTwoStorehouse.GetSeedCount() + captured + 1);
-                    lastHole.TakeAllSeeds();
-                    Debug.Log($"🎯 PlayerTwo capture {captured} biji!");
-                }
-            }
+            elapsed += Time.deltaTime * seedMoveSpeed;
+            seed.transform.position = Vector3.Lerp(lift, dropTarget, elapsed / moveDuration);
+            yield return null;
         }
 
-        // 3. Ganti giliran
-        CurrentPlayer = (CurrentPlayer == 1) ? 2 : 1;
-        Debug.Log($"👉 Sekarang giliran Player {CurrentPlayer}");
+        targetHole.AddSeedObject(seed);
     }
 
-    // --- Cek akhir permainan ---
-    private void CheckGameOver()
+    // ========= TURN RULES =========
+    private IEnumerator HandleTurnEnd(Hole lastHole)
     {
-        bool playerOneEmpty = true;
-        bool playerTwoEmpty = true;
+        if (lastHole == null) yield break;
 
-        foreach (var hole in playerOneHoles)
+        if (showDebug) Debug.Log($"[Turn] Player {currentPlayer} last seed landed in {lastHole.name}");
+
+        // Extra turn
+        if ((currentPlayer == 1 && lastHole == playerOneStorehouse) ||
+            (currentPlayer == 2 && lastHole == playerTwoStorehouse))
         {
-            if (hole.GetSeedCount() > 0) { playerOneEmpty = false; break; }
+            if (showDebug) Debug.Log("[Turn] Extra turn for Player " + currentPlayer);
+            uiController.UpdateGameStatus($"Player {currentPlayer} dapat giliran tambahan!");
+            yield break;
         }
 
-        foreach (var hole in playerTwoHoles)
+        // Capture
+        if (lastHole.GetSeedCount() == 1 &&
+            lastHole.GetHoleType() != HoleType.Storehouse &&
+            IsHoleBelongsToPlayer(lastHole, currentPlayer))
         {
-            if (hole.GetSeedCount() > 0) { playerTwoEmpty = false; break; }
+            Hole opposite = GetOppositeHole(lastHole);
+            if (opposite != null && opposite.GetSeedCount() > 0)
+            {
+                int captured = opposite.ClearSeeds();
+                int self = lastHole.ClearSeeds();
+                Hole store = (currentPlayer == 1) ? playerOneStorehouse : playerTwoStorehouse;
+                store.AddSeeds(captured + self);
+
+                if (showDebug) Debug.Log($"[Capture] Player {currentPlayer} captured {captured + self} seeds");
+            }
         }
 
-        if (playerOneEmpty || playerTwoEmpty)
+        // Relay sowing
+        if (lastHole.GetSeedCount() > 1 && lastHole.GetHoleType() != HoleType.Storehouse)
         {
-            // pindahkan semua biji yang tersisa ke storehouse masing-masing
-            int p1Extra = 0, p2Extra = 0;
-
-            foreach (var hole in playerOneHoles) p1Extra += hole.TakeAllSeeds();
-            foreach (var hole in playerTwoHoles) p2Extra += hole.TakeAllSeeds();
-
-            playerOneStorehouse.SetSeeds(playerOneStorehouse.GetSeedCount() + p1Extra);
-            playerTwoStorehouse.SetSeeds(playerTwoStorehouse.GetSeedCount() + p2Extra);
-
-            isGameActive = false;
-
-            // tentukan pemenang
-            int p1Score = playerOneStorehouse.GetSeedCount();
-            int p2Score = playerTwoStorehouse.GetSeedCount();
-
-            if (p1Score > p2Score) Debug.Log($"🏆 Player One menang! {p1Score} vs {p2Score}");
-            else if (p2Score > p1Score) Debug.Log($"🏆 Player Two menang! {p2Score} vs {p1Score}");
-            else Debug.Log($"🤝 Seri! {p1Score} vs {p2Score}");
+            if (showDebug) Debug.Log("[Relay] Continue sowing");
+            yield return SowSeedsCoroutine(lastHole);
+            yield break;
         }
+
+        // Switch turn
+        currentPlayer = (currentPlayer == 1) ? 2 : 1;
+        uiController.UpdateTurnUI(currentPlayer);
+        if (showDebug) Debug.Log($"[Turn] Switching turn to Player {currentPlayer}");
     }
 
-    // --- Navigasi hole berikutnya (searah jarum jam) ---
+    private bool IsHoleBelongsToPlayer(Hole hole, int player)
+    {
+        return (player == 1 && hole.GetHoleType() == HoleType.PlayerOne) ||
+               (player == 2 && hole.GetHoleType() == HoleType.PlayerTwo);
+    }
+
     private Hole GetNextHole(Hole current)
     {
-        if (current.GetHoleType() == HoleType.PlayerOne)
+        if (currentPlayer == 1)
         {
-            int idx = current.GetHoleIndex();
-            if (idx < playerOneHoles.Length - 1) return playerOneHoles[idx + 1];
-            else return playerOneStorehouse;
+            if (current.GetHoleType() == HoleType.PlayerOne)
+            {
+                int idx = current.GetHoleIndex();
+                if (idx > 0) return playerOneHoles[idx - 1];
+                else return playerOneStorehouse; // setelah index 0 baru ke storehouse
+            }
+            else if (current.GetHoleType() == HoleType.Storehouse)
+            {
+                return playerTwoHoles[0]; // masuk ke sisi lawan dari kiri
+            }
+            else if (current.GetHoleType() == HoleType.PlayerTwo)
+            {
+                int idx = current.GetHoleIndex();
+                if (idx < playerTwoHoles.Length - 1) return playerTwoHoles[idx + 1];
+                else return playerOneHoles[playerOneHoles.Length - 1]; // kembali ke kanan PlayerOne
+            }
         }
-        else if (current.GetHoleType() == HoleType.PlayerTwo)
+        else // PlayerTwo
         {
-            int idx = current.GetHoleIndex();
-            if (idx < playerTwoHoles.Length - 1) return playerTwoHoles[idx + 1];
-            else return playerTwoStorehouse;
-        }
-        else if (current == playerOneStorehouse)
-        {
-            return playerTwoHoles[0];
-        }
-        else if (current == playerTwoStorehouse)
-        {
-            return playerOneHoles[0];
+            if (current.GetHoleType() == HoleType.PlayerTwo)
+            {
+                int idx = current.GetHoleIndex();
+                if (idx < playerTwoHoles.Length - 1) return playerTwoHoles[idx + 1];
+                else return playerTwoStorehouse;
+            }
+            else if (current.GetHoleType() == HoleType.Storehouse)
+            {
+                return playerOneHoles[playerOneHoles.Length - 1];
+            }
+            else if (current.GetHoleType() == HoleType.PlayerOne)
+            {
+                int idx = current.GetHoleIndex();
+                if (idx > 0) return playerOneHoles[idx - 1];
+                else return playerTwoHoles[0];
+            }
         }
 
-        return playerOneHoles[0]; // fallback
+        return null;
+    }
+
+    private Hole GetOppositeHole(Hole hole)
+    {
+        if (hole.GetHoleType() == HoleType.PlayerOne)
+        {
+            int idx = hole.GetHoleIndex();
+            return playerTwoHoles[idx];
+        }
+        else if (hole.GetHoleType() == HoleType.PlayerTwo)
+        {
+            int idx = hole.GetHoleIndex();
+            return playerOneHoles[idx];
+        }
+        return null;
+    }
+
+    // ========= UI SYNC =========
+    private void UpdateUI()
+    {
+        if (uiController != null)
+        {
+            uiController.UpdateScores(playerOneStorehouse.GetSeedCount(), playerTwoStorehouse.GetSeedCount());
+            uiController.UpdateTurnUI(currentPlayer);
+        }
     }
 }

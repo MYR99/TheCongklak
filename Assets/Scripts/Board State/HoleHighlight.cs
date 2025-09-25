@@ -1,48 +1,29 @@
 using UnityEngine;
 
-[RequireComponent(typeof(Hole))]
+[RequireComponent(typeof(Renderer))]
 public class HoleHighlight : MonoBehaviour
 {
-    private Hole hole;
-    private Renderer holeRenderer;
+    private Renderer rend;
     private Color originalColor;
-    public Color highlightColor = Color.yellow;
+    [SerializeField] private Color highlightColor = Color.yellow;
+
+    private Hole hole;
 
     private void Awake()
     {
+        rend = GetComponent<Renderer>();
+        originalColor = rend.material.color;
         hole = GetComponent<Hole>();
-        holeRenderer = GetComponent<Renderer>();
-        if (holeRenderer != null)
-        {
-            originalColor = holeRenderer.material.color;
-        }
     }
 
-    private void Update()
+    private void OnMouseEnter()
     {
-        if (GameManager.Instance != null && GameManager.Instance.IsGameActive)
-        {
-            // ✅ kirim langsung "hole" (bukan int)
-            if (GameManager.Instance.IsValidMove(hole))
-            {
-                SetHighlight(true);
-            }
-            else
-            {
-                SetHighlight(false);
-            }
-        }
-        else
-        {
-            SetHighlight(false);
-        }
+        if (GameManager.Instance != null && GameManager.Instance.IsValidMove(hole))
+            rend.material.color = highlightColor;
     }
 
-    private void SetHighlight(bool state)
+    private void OnMouseExit()
     {
-        if (holeRenderer != null)
-        {
-            holeRenderer.material.color = state ? highlightColor : originalColor;
-        }
+        rend.material.color = originalColor;
     }
 }

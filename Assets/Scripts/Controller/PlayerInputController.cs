@@ -1,50 +1,60 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
+using System.Collections.Generic;
 
 public class PlayerInputController : MonoBehaviour
 {
+    [SerializeField] private LayerMask holeLayerMask;
     [SerializeField] private Camera mainCamera;
-
-    private void Awake()
-    {
-        if (mainCamera == null) mainCamera = Camera.main;
-    }
 
     private void Update()
     {
-        if (Mouse.current.leftButton.wasPressedThisFrame)
+        if (Input.GetMouseButtonDown(0))
         {
-            Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
-            if (Physics.Raycast(ray, out RaycastHit hit))
+            HandleInput(Input.mousePosition);
+        }
+    }
+
+    private void HandleInput(Vector2 screenPos)
+    {
+        // ✅ block world click jika klik UI apapun
+        if (IsPointerOverUIElement())
+        {
+            Debug.Log("[PlayerInputController] Click is on UI → block world click");
+            return;
+        }
+
+        Ray ray = mainCamera.ScreenPointToRay(screenPos);
+        if (Physics.Raycast(ray, out RaycastHit hit, 100f, holeLayerMask))
+        {
+            Hole hole = hit.collider.GetComponent<Hole>();
+            if (hole != null)
             {
-                Hole hole = hit.collider.GetComponent<Hole>();
-                if (hole != null)
-                {
-                    // --- Cek apakah hole milik player yang sedang jalan ---
-                    bool isPlayerOneTurn = GameManager.Instance.CurrentPlayer == 1;
-                    bool isValid =
-                        (isPlayerOneTurn && hole.GetHoleType() == HoleType.PlayerOne) ||
-                        (!isPlayerOneTurn && hole.GetHoleType() == HoleType.PlayerTwo);
-
-                    if (!isValid)
-                    {
-                        Debug.Log("❌ Tidak boleh pilih lubang lawan!");
-                        return;
-                    }
-
-                    // --- Ambil seeds kalau valid ---
-                    int seeds = hole.TakeAllSeeds();
-                    if (seeds > 0)
-                    {
-                        Debug.Log($"✅ Picked hole {hole.GetHoleType()} index {hole.GetHoleIndex()} with {seeds} seeds");
-                        
-                        // Mulai proses sowing (penyebaran biji)
-                        GameManager.Instance.StartCoroutine(
-                            GameManager.Instance.SowSeeds(hole, seeds)
-                        );
-                    }
-                }
+                Debug.Log($"[PlayerInputController] Clicked hole: {hole.name}, Index={hole.GetHoleIndex()}, Type={hole.GetHoleType()}");
+                GameManager.Instance.SelectHole(hole);
+            }
+            else
+            {
+                Debug.Log("[PlayerInputController] Raycast hit but no Hole component");
             }
         }
+        else
+        {
+            Debug.Log("[PlayerInputController] Raycast hit nothing!");
+        }
+    }
+
+    // ===== Utility: cek pointer di UI =====
+    private bool IsPointerOverUIElement()
+    {
+        PointerEventData eventData = new PointerEventData(EventSystem.current)
+        {
+            position = Input.mousePosition
+        };
+
+        List<RaycastResult> results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(eventData, results);
+
+        return results.Count > 0; // ✅ asal kena UI apapun → true
     }
 }

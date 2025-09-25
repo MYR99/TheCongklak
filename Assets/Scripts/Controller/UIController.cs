@@ -4,15 +4,14 @@ using TMPro;
 
 public class UIController : MonoBehaviour
 {
-    [Header("Score UI")]
-    public TMP_Text seedCountTxt;
+    [Header("Game Configuration")]
+    [SerializeField] private GameConfig config;
+
+    [Header("Score & Turn UI")]
     public TMP_Text playerOneScoreTxt;
     public TMP_Text playerTwoScoreTxt;
     public TMP_Text gameStatusTxt;
-
-    [Header("Turn Indicator UI")]
     public TMP_Text currentPlayerTxt;
-    public Image currentPlayerIndicator;
 
     [Header("Panels")]
     public GameObject settingsPanel;
@@ -25,103 +24,119 @@ public class UIController : MonoBehaviour
     public TMP_Text sfxVolumeLabel;
     public Toggle soundToggle;
     public TMP_Dropdown difficultyDropdown;
-    public TMP_Text difficultyLabel;
 
     [Header("Game End UI")]
     public TMP_Text winnerText;
 
+    [Header("Indicators")]
+    public GameObject playerOneIndicator;
+    public GameObject playerTwoIndicator;
+
     private void Start()
     {
-        // pastikan panel awal nonaktif
         if (settingsPanel != null) settingsPanel.SetActive(false);
         if (gameEndPanel != null) gameEndPanel.SetActive(false);
 
-        // listener sliders, toggle, dropdown
+        LoadAndCheckSettings();
+    }
+
+    private void LoadAndCheckSettings()
+    {
+        if (config == null)
+        {
+            Debug.LogError("GameConfig is not assigned in the UIController Inspector!", this.gameObject);
+            return;
+        }
+
         if (musicVolumeSlider != null)
+        {
             musicVolumeSlider.onValueChanged.AddListener(OnMusicVolumeChanged);
+            musicVolumeSlider.value = config.musicVolume;
+            OnMusicVolumeChanged(config.musicVolume);
+        }
 
         if (sfxVolumeSlider != null)
+        {
             sfxVolumeSlider.onValueChanged.AddListener(OnSFXVolumeChanged);
+            sfxVolumeSlider.value = config.sfxVolume;
+            OnSFXVolumeChanged(config.sfxVolume);
+        }
 
         if (soundToggle != null)
-            soundToggle.onValueChanged.AddListener(OnSoundToggle);
-
-        if (difficultyDropdown != null)
-            difficultyDropdown.onValueChanged.AddListener(OnDifficultyChanged);
-    }
-
-    // ✅ update skor dan total seeds
-    public void UpdateBoardUI(BoardState boardState)
-    {
-        if (seedCountTxt != null)
         {
-            int totalSeeds = 0;
-            foreach (int s in boardState.playerOneHoles) totalSeeds += s;
-            foreach (int s in boardState.playerTwoHoles) totalSeeds += s;
-            seedCountTxt.text = "Seeds Left: " + totalSeeds;
+            soundToggle.onValueChanged.AddListener(OnSoundToggleChanged);
+            soundToggle.isOn = config.soundEnabled;
         }
-
-        if (playerOneScoreTxt != null)
-            playerOneScoreTxt.text = "Player One: " + boardState.playerOneScore;
-
-        if (playerTwoScoreTxt != null)
-            playerTwoScoreTxt.text = "Player Two: " + boardState.playerTwoScore;
     }
 
-    // ✅ update turn text dan indikator
-    public void UpdateTurnIndicator(bool isPlayerOneTurn)
+    // ========== UPDATE UI ==========
+    public void UpdateScores(int p1Score, int p2Score)
     {
-        if (currentPlayerTxt != null)
-            currentPlayerTxt.text = isPlayerOneTurn ? "Current: Player One" : "Current: Player Two";
+        if (playerOneScoreTxt != null) playerOneScoreTxt.text = p1Score.ToString();
+        if (playerTwoScoreTxt != null) playerTwoScoreTxt.text = p2Score.ToString();
+    }
 
+    public void UpdateTurnUI(int currentPlayer)
+    {
         if (gameStatusTxt != null)
-            gameStatusTxt.text = isPlayerOneTurn ? "Player One's Turn" : "Player Two's Turn";
-
-        if (currentPlayerIndicator != null)
         {
-            currentPlayerIndicator.color = isPlayerOneTurn ? Color.green : Color.red;
+            gameStatusTxt.text = (currentPlayer == 1) ? "Player One's Turn" : "Player Two's Turn";
+            gameStatusTxt.color = (currentPlayer == 1) ? Color.cyan : Color.magenta;
+        }
+
+        if (currentPlayerTxt != null)
+        {
+            currentPlayerTxt.text = (currentPlayer == 1) ? "Player One" : "Player Two";
+        }
+
+        if (playerOneIndicator != null) playerOneIndicator.SetActive(currentPlayer == 1);
+        if (playerTwoIndicator != null) playerTwoIndicator.SetActive(currentPlayer == 2);
+    }
+
+    public void UpdateGameStatus(string message)
+    {
+        if (gameStatusTxt != null)
+        {
+            gameStatusTxt.text = message;
         }
     }
 
-    // ✅ tampilkan game over
+    public void UpdateSeedCount(Hole hole, int count)
+    {
+        if (hole != null && hole.seedText != null)
+        {
+            hole.seedText.text = count.ToString();
+        }
+    }
+
     public void ShowGameOver(string winnerMessage)
     {
         if (gameEndPanel != null) gameEndPanel.SetActive(true);
         if (winnerText != null) winnerText.text = winnerMessage;
     }
 
-    // ✅ buka/tutup settings
-    public void OpenSettings()
+    public void HideGameOver()
     {
-        if (settingsPanel != null) settingsPanel.SetActive(true);
+        if (gameEndPanel != null) gameEndPanel.SetActive(false);
     }
 
-    public void CloseSettings()
+    // ========== SETTINGS CALLBACKS ==========
+    public void OnMusicVolumeChanged(float value)
     {
-        if (settingsPanel != null) settingsPanel.SetActive(false);
+        if (musicVolumeLabel != null) musicVolumeLabel.text = $"Music: {Mathf.RoundToInt(value * 100)}%";
+        if (config != null) config.musicVolume = value;
+        Debug.Log($"[UIController] Music volume set to: {value}");
     }
 
-    // ✅ event handler UI
-    private void OnMusicVolumeChanged(float value)
+    public void OnSFXVolumeChanged(float value)
     {
-        if (musicVolumeLabel != null)
-            musicVolumeLabel.text = "Music: " + Mathf.RoundToInt(value * 100) + "%";
+        if (sfxVolumeLabel != null) sfxVolumeLabel.text = $"SFX: {Mathf.RoundToInt(value * 100)}%";
+        if (config != null) config.sfxVolume = value;
+        Debug.Log($"[UIController] SFX volume set to: {value}");
     }
 
-    private void OnSFXVolumeChanged(float value)
+    private void OnSoundToggleChanged(bool isOn)
     {
-        if (sfxVolumeLabel != null)
-            sfxVolumeLabel.text = "SFX: " + Mathf.RoundToInt(value * 100) + "%";
-    }
-
-    private void OnSoundToggle(bool isOn)
-    {
-        Debug.Log("Sound " + (isOn ? "ON" : "OFF"));
-    }
-
-    private void OnDifficultyChanged(int index)
-    {
-        if (difficultyLabel != null)
-            difficultyLabel.text = "Difficulty: " + difficultyDropdown.options[index].text;
+        if (config != null) config.soundEnabled = isOn;
     }
 }
