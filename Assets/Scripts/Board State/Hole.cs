@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
@@ -17,7 +18,7 @@ public class Hole : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private Transform seedContainer;
-    public TMP_Text seedText; // UI text untuk menampilkan jumlah biji
+    public TMP_Text seedText;
 
     private List<GameObject> seeds = new List<GameObject>();
 
@@ -25,45 +26,34 @@ public class Hole : MonoBehaviour
     {
         if (seedContainer == null)
         {
-            // kalau lupa assign, auto bikin container
             GameObject container = new GameObject("SeedContainer");
             container.transform.SetParent(this.transform);
             container.transform.localPosition = Vector3.zero;
             seedContainer = container.transform;
         }
     }
-
-    // ========== HOLE CONFIG ==========
-
+    
     public void SetHoleType(HoleType type) => holeType = type;
     public HoleType GetHoleType() => holeType;
-
     public void SetIndex(int index) => holeIndex = index;
     public int GetHoleIndex() => holeIndex;
-
     public Transform GetSeedContainer() => seedContainer;
-
-    // ========== SEED MANAGEMENT ==========
-
+    
     public void SetSeeds(int count)
     {
         ClearSeeds();
         for (int i = 0; i < count; i++)
         {
-            GameObject seed = SeedPool.Instance.GetSeed();
-            AddSeedObject(seed);
+            AddSeedObject(SeedPool.Instance.GetSeed());
         }
-        UpdateSeedText();
     }
 
     public void AddSeeds(int count)
     {
         for (int i = 0; i < count; i++)
         {
-            GameObject seed = SeedPool.Instance.GetSeed();
-            AddSeedObject(seed);
+            AddSeedObject(SeedPool.Instance.GetSeed());
         }
-        UpdateSeedText();
     }
 
     public void AddSeedObject(GameObject seed)
@@ -72,11 +62,41 @@ public class Hole : MonoBehaviour
         seed.transform.SetParent(seedContainer);
         seed.transform.localPosition = GetRandomSeedPosition();
         seed.transform.localScale = Vector3.one * SeedPool.Instance.GetSeedScale();
-
         seeds.Add(seed);
         UpdateSeedText();
     }
+    
+    public IEnumerator AnimateAddSeedCoroutine(GameObject seed, Transform startContainer, float liftHeight, float moveSpeed)
+    {
+        seed.transform.SetParent(this.seedContainer, true);
+        Vector3 startPos = startContainer.position;
+        Vector3 endPos = this.seedContainer.position;
+        Vector3 finalLocalPos = GetRandomSeedPosition();
+        Vector3 startLiftPos = startPos + Vector3.up * liftHeight;
+        Vector3 endLiftPos = endPos + Vector3.up * liftHeight;
+        Vector3 finalWorldPos = this.seedContainer.TransformPoint(finalLocalPos);
 
+        while (Vector3.Distance(seed.transform.position, startLiftPos) > 0.01f)
+        {
+            seed.transform.position = Vector3.MoveTowards(seed.transform.position, startLiftPos, moveSpeed * Time.deltaTime);
+            yield return null;
+        }
+        while (Vector3.Distance(seed.transform.position, endLiftPos) > 0.01f)
+        {
+            seed.transform.position = Vector3.MoveTowards(seed.transform.position, endLiftPos, moveSpeed * Time.deltaTime);
+            yield return null;
+        }
+        while (Vector3.Distance(seed.transform.position, finalWorldPos) > 0.01f)
+        {
+            seed.transform.position = Vector3.MoveTowards(seed.transform.position, finalWorldPos, moveSpeed * Time.deltaTime);
+            yield return null;
+        }
+
+        seed.transform.localPosition = finalLocalPos;
+        seeds.Add(seed);
+        UpdateSeedText();
+    }
+    
     public List<GameObject> TakeAllSeedObjects()
     {
         List<GameObject> taken = new List<GameObject>(seeds);
@@ -107,22 +127,12 @@ public class Hole : MonoBehaviour
             Random.Range(-0.1f, 0.1f)
         );
     }
-
-    // ========== UI UPDATE ==========
-
+    
     private void UpdateSeedText()
     {
         if (seedText != null)
         {
             seedText.text = seeds.Count.ToString();
         }
-
-        UIController ui = FindObjectOfType<UIController>();
-        if (ui != null) ui.UpdateSeedCount(this, seeds.Count);
-    }
-
-    private bool UIControllerExists()
-    {
-        return FindObjectOfType<UIController>() != null;
     }
 }

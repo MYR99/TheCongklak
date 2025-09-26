@@ -36,107 +36,57 @@ public class UIController : MonoBehaviour
     {
         if (settingsPanel != null) settingsPanel.SetActive(false);
         if (gameEndPanel != null) gameEndPanel.SetActive(false);
-
         LoadAndCheckSettings();
     }
 
     private void LoadAndCheckSettings()
     {
-        if (config == null)
+        if (config == null) { Debug.LogError("GameConfig is not assigned in the UIController Inspector!", this.gameObject); return; }
+        musicVolumeSlider.value = config.musicVolume;
+        sfxVolumeSlider.value = config.sfxVolume;
+        soundToggle.isOn = config.soundEnabled;
+        difficultyDropdown.value = (int)config.aiDifficulty;
+        OnMusicVolumeChanged(config.musicVolume);
+        OnSFXVolumeChanged(config.sfxVolume);
+        
+        if (AudioManager.Instance != null)
         {
-            Debug.LogError("GameConfig is not assigned in the UIController Inspector!", this.gameObject);
-            return;
-        }
-
-        if (musicVolumeSlider != null)
-        {
-            musicVolumeSlider.onValueChanged.AddListener(OnMusicVolumeChanged);
-            musicVolumeSlider.value = config.musicVolume;
-            OnMusicVolumeChanged(config.musicVolume);
-        }
-
-        if (sfxVolumeSlider != null)
-        {
-            sfxVolumeSlider.onValueChanged.AddListener(OnSFXVolumeChanged);
-            sfxVolumeSlider.value = config.sfxVolume;
-            OnSFXVolumeChanged(config.sfxVolume);
-        }
-
-        if (soundToggle != null)
-        {
-            soundToggle.onValueChanged.AddListener(OnSoundToggleChanged);
-            soundToggle.isOn = config.soundEnabled;
+            AudioManager.Instance.SetMusicVolume(config.musicVolume);
+            AudioManager.Instance.SetSFXVolume(config.sfxVolume);
+            AudioManager.Instance.ToggleSound(config.soundEnabled);
         }
     }
-
-    // ========== UPDATE UI ==========
-    public void UpdateScores(int p1Score, int p2Score)
+    
+    public void UpdateScores(int playerOneScore, int playerTwoScore, int currentPlayer)
     {
-        if (playerOneScoreTxt != null) playerOneScoreTxt.text = p1Score.ToString();
-        if (playerTwoScoreTxt != null) playerTwoScoreTxt.text = p2Score.ToString();
-    }
-
-    public void UpdateTurnUI(int currentPlayer)
-    {
-        if (gameStatusTxt != null)
-        {
-            gameStatusTxt.text = (currentPlayer == 1) ? "Player One's Turn" : "Player Two's Turn";
-            gameStatusTxt.color = (currentPlayer == 1) ? Color.cyan : Color.magenta;
-        }
-
-        if (currentPlayerTxt != null)
-        {
-            currentPlayerTxt.text = (currentPlayer == 1) ? "Player One" : "Player Two";
-        }
-
+        if (playerOneScoreTxt != null) playerOneScoreTxt.text = playerOneScore.ToString();
+        if (playerTwoScoreTxt != null) playerTwoScoreTxt.text = playerTwoScore.ToString();
+        if (currentPlayerTxt != null) { currentPlayerTxt.text = $"Giliran Pemain {currentPlayer}"; currentPlayerTxt.color = (currentPlayer == 1) ? Color.cyan : Color.magenta; }
         if (playerOneIndicator != null) playerOneIndicator.SetActive(currentPlayer == 1);
         if (playerTwoIndicator != null) playerTwoIndicator.SetActive(currentPlayer == 2);
     }
-
-    public void UpdateGameStatus(string message)
-    {
-        if (gameStatusTxt != null)
-        {
-            gameStatusTxt.text = message;
-        }
-    }
-
-    public void UpdateSeedCount(Hole hole, int count)
-    {
-        if (hole != null && hole.seedText != null)
-        {
-            hole.seedText.text = count.ToString();
-        }
-    }
-
-    public void ShowGameOver(string winnerMessage)
-    {
-        if (gameEndPanel != null) gameEndPanel.SetActive(true);
-        if (winnerText != null) winnerText.text = winnerMessage;
-    }
-
-    public void HideGameOver()
-    {
-        if (gameEndPanel != null) gameEndPanel.SetActive(false);
-    }
-
-    // ========== SETTINGS CALLBACKS ==========
+    public void UpdateGameStatus(string message) { if (gameStatusTxt != null) { gameStatusTxt.text = message; } }
+    public void UpdateSeedCount(Hole hole, int count) { if (hole != null && hole.seedText != null) { hole.seedText.text = count.ToString(); } }
+    public void ShowGameOver(string winnerMessage) { if (gameEndPanel != null) gameEndPanel.SetActive(true); if (winnerText != null) winnerText.text = winnerMessage; }
+    public void HideGameOver() { if (gameEndPanel != null) gameEndPanel.SetActive(false); }
+    
     public void OnMusicVolumeChanged(float value)
     {
         if (musicVolumeLabel != null) musicVolumeLabel.text = $"Music: {Mathf.RoundToInt(value * 100)}%";
         if (config != null) config.musicVolume = value;
-        Debug.Log($"[UIController] Music volume set to: {value}");
+        if (AudioManager.Instance != null) AudioManager.Instance.SetMusicVolume(value);
     }
 
     public void OnSFXVolumeChanged(float value)
     {
         if (sfxVolumeLabel != null) sfxVolumeLabel.text = $"SFX: {Mathf.RoundToInt(value * 100)}%";
         if (config != null) config.sfxVolume = value;
-        Debug.Log($"[UIController] SFX volume set to: {value}");
+        if (AudioManager.Instance != null) AudioManager.Instance.SetSFXVolume(value);
     }
-
-    private void OnSoundToggleChanged(bool isOn)
+    
+    public void OnSoundToggleChanged(bool isOn)
     {
         if (config != null) config.soundEnabled = isOn;
+        if (AudioManager.Instance != null) AudioManager.Instance.ToggleSound(isOn);
     }
 }

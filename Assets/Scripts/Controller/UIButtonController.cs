@@ -13,30 +13,39 @@ public class UIButtonController : MonoBehaviour
         if (uiController == null) uiController = FindObjectOfType<UIController>();
     }
 
-    // ========= MAIN BUTTONS =========
+    private void PlayClickSound()
+    {
+        if (AudioManager.Instance != null && AudioManager.Instance.buttonClick != null)
+        {
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.buttonClick);
+        }
+    }
+
     public void OnRestartButton()
     {
+        PlayClickSound();
         if (gameManager != null)
         {
             gameManager.RestartGame();
             if (uiController != null) uiController.HideGameOver();
-
             Debug.Log("[UIButtonController] Restart pressed");
         }
     }
 
     public void OnExitButton()
     {
+        PlayClickSound();
         Debug.Log("[UIButtonController] Exit pressed");
-#if UNITY_EDITOR
+        #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
-#else
+        #else
         Application.Quit();
-#endif
+        #endif
     }
 
     public void OnSettingsButton()
     {
+        PlayClickSound();
         if (uiController != null)
         {
             bool active = uiController.settingsPanel.activeSelf;
@@ -45,20 +54,8 @@ public class UIButtonController : MonoBehaviour
         }
     }
 
-    // ========= SETTINGS CALLBACKS =========
-    public void OnDifficultyChanged(int index)
-    {
-        if (uiController != null && uiController.difficultyDropdown != null)
-        {
-            Debug.Log($"[UIButtonController] Difficulty changed: {uiController.difficultyDropdown.options[index].text}");
-        }
-    }
-
-    public void OnToggleSound(bool isOn)
-    {
-        if (uiController != null)
-        {
-            Debug.Log("[UIButtonController] Sound toggled: " + (isOn ? "ON" : "OFF"));
-        }
-    }
+    public void OnDifficultyChanged(int index) { if (uiController != null && uiController.difficultyDropdown != null) { Debug.Log($"[UIButtonController] Difficulty changed: {uiController.difficultyDropdown.options[index].text}"); } }
+    public void OnToggleSound(bool isOn) { if (uiController != null) { Debug.Log("[UIButtonController] Sound toggled: " + (isOn ? "ON" : "OFF")); } }
+    public void OnMusicVolumeChanged(float value) { if (uiController != null) { Debug.Log("[UIButtonController] Music volume changed: " + value); } }
+    public void OnSFXVolumeChanged(float value) { if (uiController != null) { Debug.Log("[UIButtonController] SFX volume changed: " + value); } }
 }
