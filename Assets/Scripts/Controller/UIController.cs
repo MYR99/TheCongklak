@@ -4,6 +4,44 @@ using TMPro;
 
 public class UIController : MonoBehaviour
 {
+    [Header("Game End UI")]
+    public Image winnerImage; 
+    public Sprite winSprite;
+    public Sprite loseSprite;
+    public Sprite drawSprite;
+
+    [Header("Pause Panel UI")] 
+    public TMP_Text pausePanelScoreText;
+    public TMP_Text pausePanelTurnText;
+
+    public void ShowGameOver(bool isWin, bool isDraw = false)
+    {
+        if (gameEndPanel != null) gameEndPanel.SetActive(true);
+        if (winnerImage != null)
+        {
+            if (isDraw && drawSprite != null)
+            {
+                winnerImage.sprite = drawSprite;
+            }
+            else
+            {
+                winnerImage.sprite = isWin ? winSprite : loseSprite;
+            } 
+        }
+    }
+
+    public void UpdatePausePanelInfo(int p1Score, int p2Score, int currentPlayer)
+    {
+        if (pausePanelScoreText != null)
+        {
+            pausePanelScoreText.text = $"SKOR: {p1Score} - {p2Score}";
+        }
+        if (pausePanelTurnText != null)
+        {
+            pausePanelTurnText.text = $"Giliran: Pemain {currentPlayer}";
+        }
+    }
+
     [Header("Game Configuration")]
     [SerializeField] private GameConfig config;
 
@@ -24,9 +62,6 @@ public class UIController : MonoBehaviour
     public TMP_Text sfxVolumeLabel;
     public Toggle soundToggle;
     public TMP_Dropdown difficultyDropdown;
-
-    [Header("Game End UI")]
-    public TMP_Text winnerText;
 
     [Header("Indicators")]
     public GameObject playerOneIndicator;
@@ -67,7 +102,6 @@ public class UIController : MonoBehaviour
     }
     public void UpdateGameStatus(string message) { if (gameStatusTxt != null) { gameStatusTxt.text = message; } }
     public void UpdateSeedCount(Hole hole, int count) { if (hole != null && hole.seedText != null) { hole.seedText.text = count.ToString(); } }
-    public void ShowGameOver(string winnerMessage) { if (gameEndPanel != null) gameEndPanel.SetActive(true); if (winnerText != null) winnerText.text = winnerMessage; }
     public void HideGameOver() { if (gameEndPanel != null) gameEndPanel.SetActive(false); }
     
     public void OnMusicVolumeChanged(float value)
@@ -83,7 +117,7 @@ public class UIController : MonoBehaviour
         if (config != null) config.sfxVolume = value;
         if (AudioManager.Instance != null) AudioManager.Instance.SetSFXVolume(value);
     }
-    
+
     public void OnSoundToggleChanged(bool isOn)
     {
         if (config != null) config.soundEnabled = isOn;

@@ -19,6 +19,7 @@ public class Hole : MonoBehaviour
     [Header("References")]
     [SerializeField] private Transform seedContainer;
     public TMP_Text seedText;
+    public GameObject turnIndicatorHighlight;
 
     private List<GameObject> seeds = new List<GameObject>();
 
@@ -133,6 +134,13 @@ public class Hole : MonoBehaviour
         if (seedText != null)
         {
             seedText.text = seeds.Count.ToString();
+        }
+    }
+    public void SetTurnHighlight(bool state)
+    {
+        if (turnIndicatorHighlight != null)
+        {
+            turnIndicatorHighlight.SetActive(state);
         }
     }
 }

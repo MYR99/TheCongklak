@@ -17,7 +17,11 @@ public class PlayerInputController : MonoBehaviour
 
     private void HandleInput(Vector2 screenPos)
     {
-        // ✅ block world click jika klik UI apapun
+        if (GameManager.Instance != null && GameManager.Instance.IsPaused)
+        {
+            return;
+        }
+
         if (IsPointerOverUIElement())
         {
             Debug.Log("[PlayerInputController] Click is on UI → block world click");
@@ -30,31 +34,16 @@ public class PlayerInputController : MonoBehaviour
             Hole hole = hit.collider.GetComponent<Hole>();
             if (hole != null)
             {
-                Debug.Log($"[PlayerInputController] Clicked hole: {hole.name}, Index={hole.GetHoleIndex()}, Type={hole.GetHoleType()}");
                 GameManager.Instance.SelectHole(hole);
             }
-            else
-            {
-                Debug.Log("[PlayerInputController] Raycast hit but no Hole component");
-            }
-        }
-        else
-        {
-            Debug.Log("[PlayerInputController] Raycast hit nothing!");
         }
     }
-
-    // ===== Utility: cek pointer di UI =====
+    
     private bool IsPointerOverUIElement()
     {
-        PointerEventData eventData = new PointerEventData(EventSystem.current)
-        {
-            position = Input.mousePosition
-        };
-
+        PointerEventData eventData = new PointerEventData(EventSystem.current) { position = Input.mousePosition };
         List<RaycastResult> results = new List<RaycastResult>();
         EventSystem.current.RaycastAll(eventData, results);
-
-        return results.Count > 0; // ✅ asal kena UI apapun → true
+        return results.Count > 0;
     }
 }

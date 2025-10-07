@@ -4,6 +4,42 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+    [Header("References")]
+    [SerializeField] private UIController uiController;
+    [SerializeField] private GameConfig config; 
+
+    [SerializeField] public GameObject pausePanel;
+    private bool isPaused = false;
+    public bool IsPaused => isPaused;
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            TogglePause();
+        }
+    }
+
+    public void TogglePause()
+    {
+        isPaused = !isPaused;
+
+        if (isPaused)
+        {
+            Time.timeScale = 0f; 
+            pausePanel.SetActive(true);
+            
+            if (uiController != null)
+            {
+                uiController.UpdatePausePanelInfo(playerOneStorehouse.GetSeedCount(), playerTwoStorehouse.GetSeedCount(), currentPlayer);
+            }
+        }
+        else
+        {
+            Time.timeScale = 1f; 
+            pausePanel.SetActive(false);
+        }
+    }
     public static GameManager Instance { get; private set; }
 
     [Header("Board References")]
@@ -17,20 +53,13 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float seedMoveSpeed = 5f;
     [SerializeField] private float liftHeight = 0.5f;
 
-    [Header("References")]
-    [SerializeField] private UIController uiController;
-    [SerializeField] private GameConfig config; 
-
     [Header("Debug")]
     [SerializeField] private bool showDebug = true;
 
     private int currentPlayer = 1;
     private bool isSowing = false;
     private bool isGameActive = true;
-
-    public int CurrentPlayer => currentPlayer;
-    public bool IsGameActive => isGameActive;
-
+    
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -51,6 +80,7 @@ public class GameManager : MonoBehaviour
     public void RestartGame()
     {
         StopAllCoroutines();
+        isSowing = false;
         SetupBoard();
         if (showDebug) Debug.Log("[GameManager] Game restarted");
     }
@@ -66,6 +96,7 @@ public class GameManager : MonoBehaviour
         if (uiController != null) uiController.HideGameOver();
         UpdateUI();
         if (showDebug) Debug.Log("[GameManager] Board setup complete");
+        UpdateTurnIndicators();
     }
     
     public void SelectHole(Hole hole)
@@ -78,21 +109,20 @@ public class GameManager : MonoBehaviour
     private IEnumerator SowSeedsCoroutine(Hole startHole)
     {
         isSowing = true;
-
         Hole currentHole = startHole;
         Hole lastHole = startHole;
-
-        while (true)
+        
+        while (true) 
         {
             List<GameObject> seedsToSow = currentHole.TakeAllSeedObjects();
             int seedCount = seedsToSow.Count;
-            if (seedCount == 0) break;
+            if (seedCount == 0) break; 
 
             for (int i = 0; i < seedCount; i++)
             {
                 Hole previousHole = lastHole;
                 lastHole = GetNextHole(previousHole);
-
+                
                 yield return StartCoroutine(lastHole.AnimateAddSeedCoroutine(
                     seedsToSow[i], previousHole.GetSeedContainer(), liftHeight, seedMoveSpeed));
 
@@ -107,10 +137,10 @@ public class GameManager : MonoBehaviour
                 uiController.UpdateGameStatus("Giliran Tambahan!");
                 if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(AudioManager.Instance.extraTurn);
                 CheckGameOver();
-                isSowing = false;
-                yield break;
+                isSowing = false; 
+                yield break; 
             }
-
+            
             if (lastHole.GetSeedCount() == 1 && IsHoleBelongsToPlayer(lastHole, currentPlayer))
             {
                 Hole opposite = GetOppositeHole(lastHole);
@@ -120,7 +150,7 @@ public class GameManager : MonoBehaviour
                     int captured = opposite.ClearSeeds() + lastHole.ClearSeeds();
                     Hole store = (currentPlayer == 1) ? playerOneStorehouse : playerTwoStorehouse;
                     store.AddSeeds(captured);
-
+                    
                     if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(AudioManager.Instance.seedCapture);
                     UpdateUI();
                 }
@@ -141,10 +171,15 @@ public class GameManager : MonoBehaviour
         }
 
         CheckGameOver();
-        if (isGameActive)
+        if(isGameActive)
         {
-            currentPlayer = (currentPlayer == 1) ? 2 : 1;
+            bool isExtraTurn = (currentPlayer == 1 && lastHole == playerOneStorehouse) || (currentPlayer == 2 && lastHole == playerTwoStorehouse);
+            if(!isExtraTurn)
+            {
+                currentPlayer = (currentPlayer == 1) ? 2 : 1;
+            }
             UpdateUI();
+            UpdateTurnIndicators();
         }
         isSowing = false;
     }
@@ -160,40 +195,31 @@ public class GameManager : MonoBehaviour
         if (p1SideEmpty || p2SideEmpty)
         {
             isGameActive = false;
-            int p1Remaining = 0;
-            foreach (var hole in playerOneHoles) p1Remaining += hole.ClearSeeds();
-            playerOneStorehouse.AddSeeds(p1Remaining);
-
-            int p2Remaining = 0;
-            foreach (var hole in playerTwoHoles) p2Remaining += hole.ClearSeeds();
-            playerTwoStorehouse.AddSeeds(p2Remaining);
-
+            int p1Remaining = 0; foreach (var hole in playerOneHoles) p1Remaining += hole.ClearSeeds(); playerOneStorehouse.AddSeeds(p1Remaining);
+            int p2Remaining = 0; foreach (var hole in playerTwoHoles) p2Remaining += hole.ClearSeeds(); playerTwoStorehouse.AddSeeds(p2Remaining);
             UpdateUI();
 
             int p1Score = playerOneStorehouse.GetSeedCount();
             int p2Score = playerTwoStorehouse.GetSeedCount();
 
-            string winnerMessage;
             AudioClip finalSfx = null;
 
             if (p1Score > p2Score)
             {
-                winnerMessage = "Pemain 1 Menang!";
                 finalSfx = AudioManager.Instance.gameWin;
+                uiController.ShowGameOver(true); 
             }
             else if (p2Score > p1Score)
             {
-                winnerMessage = "Pemain 2 Menang!";
                 finalSfx = (config != null && config.gameMode == GameMode.PlayerVsAI) ? AudioManager.Instance.gameLose : AudioManager.Instance.gameWin;
+                uiController.ShowGameOver(false); 
             }
             else
             {
-                winnerMessage = "Permainan Seri!";
                 finalSfx = AudioManager.Instance.gameWin;
+                uiController.ShowGameOver(true, true); 
             }
-
             if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(finalSfx);
-            uiController.ShowGameOver(winnerMessage);
         }
     }
 
@@ -204,7 +230,18 @@ public class GameManager : MonoBehaviour
             uiController.UpdateScores(playerOneStorehouse.GetSeedCount(), playerTwoStorehouse.GetSeedCount(), currentPlayer);
         }
     }
-
+    private void UpdateTurnIndicators()
+    {
+        foreach(var hole in playerOneHoles)
+        {
+            hole.SetTurnHighlight(currentPlayer == 1 && IsValidMove(hole));
+        }
+        foreach(var hole in playerTwoHoles)
+        {
+            hole.SetTurnHighlight(currentPlayer == 2 && IsValidMove(hole));
+        }
+    }
+    
     public bool IsValidMove(Hole hole) { if (hole == null || hole.GetHoleType() == HoleType.Storehouse || hole.GetSeedCount() == 0) return false; if (currentPlayer == 1 && hole.GetHoleType() != HoleType.PlayerOne) return false; if (currentPlayer == 2 && hole.GetHoleType() != HoleType.PlayerTwo) return false; return true; }
     private bool IsHoleBelongsToPlayer(Hole hole, int player) { return (player == 1 && hole.GetHoleType() == HoleType.PlayerOne) || (player == 2 && hole.GetHoleType() == HoleType.PlayerTwo); }
     private Hole GetOppositeHole(Hole hole) { if (hole.GetHoleType() == HoleType.PlayerOne) { int idx = hole.GetHoleIndex(); return playerTwoHoles[idx]; } else if (hole.GetHoleType() == HoleType.PlayerTwo) { int idx = hole.GetHoleIndex(); return playerOneHoles[idx]; } return null; }
