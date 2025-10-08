@@ -4,42 +4,6 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    [Header("References")]
-    [SerializeField] private UIController uiController;
-    [SerializeField] private GameConfig config; 
-
-    [SerializeField] public GameObject pausePanel;
-    private bool isPaused = false;
-    public bool IsPaused => isPaused;
-
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            TogglePause();
-        }
-    }
-
-    public void TogglePause()
-    {
-        isPaused = !isPaused;
-
-        if (isPaused)
-        {
-            Time.timeScale = 0f; 
-            pausePanel.SetActive(true);
-            
-            if (uiController != null)
-            {
-                uiController.UpdatePausePanelInfo(playerOneStorehouse.GetSeedCount(), playerTwoStorehouse.GetSeedCount(), currentPlayer);
-            }
-        }
-        else
-        {
-            Time.timeScale = 1f; 
-            pausePanel.SetActive(false);
-        }
-    }
     public static GameManager Instance { get; private set; }
 
     [Header("Board References")]
@@ -53,13 +17,25 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float seedMoveSpeed = 5f;
     [SerializeField] private float liftHeight = 0.5f;
 
-    [Header("Debug")]
-    [SerializeField] private bool showDebug = true;
+    [Header("References")]
+    [SerializeField] private UIController uiController;
+    [SerializeField] private GameConfig config;
+    [SerializeField] public GameObject pausePanel;
+    [SerializeField] private bool sowDebugLogs = false;
 
     private int currentPlayer = 1;
     private bool isSowing = false;
     private bool isGameActive = true;
-    
+
+    private int p1ExtraTurns;
+    private int p2ExtraTurns;
+    private int p1MaxSeedsCaptured;
+    private int p2MaxSeedsCaptured;
+
+    public bool IsPaused { get; private set; } = false;
+    public int CurrentPlayer => currentPlayer;
+    public bool IsGameActive => isGameActive;
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -67,22 +43,36 @@ public class GameManager : MonoBehaviour
 
         for (int i = 0; i < playerOneHoles.Length; i++) { playerOneHoles[i].SetIndex(i); playerOneHoles[i].SetHoleType(HoleType.PlayerOne); }
         for (int i = 0; i < playerTwoHoles.Length; i++) { playerTwoHoles[i].SetIndex(i); playerTwoHoles[i].SetHoleType(HoleType.PlayerTwo); }
-        playerOneStorehouse.SetHoleType(HoleType.Storehouse);
-        playerTwoStorehouse.SetHoleType(HoleType.Storehouse);
+        if (playerOneStorehouse != null) { playerOneStorehouse.SetHoleType(HoleType.Storehouse); playerOneStorehouse.SetIndex(-1); }
+        if (playerTwoStorehouse != null) { playerTwoStorehouse.SetHoleType(HoleType.Storehouse); playerTwoStorehouse.SetIndex(-1); }
     }
 
     private void Start()
     {
-        if (AudioManager.Instance != null) { AudioManager.Instance.StartMusic(); }
         RestartGame();
     }
-    
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape)) TogglePause();
+    }
+
+    public void TogglePause()
+    {
+        IsPaused = !IsPaused;
+        Time.timeScale = IsPaused ? 0f : 1f;
+        pausePanel.SetActive(IsPaused);
+        if (IsPaused && uiController != null)
+        {
+            uiController.UpdatePausePanelInfo(playerOneStorehouse.GetSeedCount(), playerTwoStorehouse.GetSeedCount(), currentPlayer);
+        }
+    }
+
     public void RestartGame()
     {
+        if (AudioManager.Instance != null) AudioManager.Instance.PlayMusic();
         StopAllCoroutines();
-        isSowing = false;
         SetupBoard();
-        if (showDebug) Debug.Log("[GameManager] Game restarted");
     }
 
     private void SetupBoard()
@@ -93,141 +83,118 @@ public class GameManager : MonoBehaviour
         playerTwoStorehouse.ClearSeeds();
         currentPlayer = 1;
         isGameActive = true;
+        isSowing = false;
         if (uiController != null) uiController.HideGameOver();
-        UpdateUI();
-        if (showDebug) Debug.Log("[GameManager] Board setup complete");
-        UpdateTurnIndicators();
+
+        p1ExtraTurns = 0;
+        p2ExtraTurns = 0;
+        p1MaxSeedsCaptured = 0;
+        p2MaxSeedsCaptured = 0;
+
+        UpdateUIAndIndicators();
     }
-    
+
     public void SelectHole(Hole hole)
     {
-        if (!isGameActive || isSowing || !IsValidMove(hole)) return;
+        if (!isGameActive || isSowing || IsPaused || !IsValidMove(hole)) return;
 
-        isSowing = true; 
+        isSowing = true;
         UpdateTurnIndicators();
 
         if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(AudioManager.Instance.seedPickup);
         StartCoroutine(SowSeedsCoroutine(hole));
     }
-    
+
     private IEnumerator SowSeedsCoroutine(Hole startHole)
     {
-        isSowing = true;
         Hole currentHole = startHole;
         Hole lastHole = startHole;
-        
-        while (true) 
+
+        while (true)
         {
             List<GameObject> seedsToSow = currentHole.TakeAllSeedObjects();
             int seedCount = seedsToSow.Count;
-            if (seedCount == 0) break; 
+            if (seedCount == 0) break;
 
             for (int i = 0; i < seedCount; i++)
             {
                 Hole previousHole = lastHole;
                 lastHole = GetNextHole(previousHole);
-                
+
+                if (sowDebugLogs)
+                {
+                    string prevName = previousHole != null ? previousHole.name : "null";
+                    string nextName = lastHole != null ? lastHole.name : "null";
+                    string nextType = lastHole != null ? lastHole.GetHoleType().ToString() : "null";
+                    string nextIdx = (lastHole != null && lastHole.GetHoleType() != HoleType.Storehouse) ? lastHole.GetHoleIndex().ToString() : "store";
+                    Debug.Log($"Sow step #{i}: {prevName} -> {nextName} (type:{nextType} idx:{nextIdx})");
+                }
+
+                if ((currentPlayer == 1 && lastHole == playerTwoStorehouse) ||
+                    (currentPlayer == 2 && lastHole == playerOneStorehouse))
+                {
+                    if (sowDebugLogs) Debug.Log("Skipping opponent storehouse");
+                    lastHole = GetNextHole(lastHole);
+                }
+
                 yield return StartCoroutine(lastHole.AnimateAddSeedCoroutine(
                     seedsToSow[i], previousHole.GetSeedContainer(), liftHeight, seedMoveSpeed));
 
                 if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(AudioManager.Instance.seedDrop);
-                UpdateUI();
+                if (uiController != null) uiController.UpdateScores(playerOneStorehouse.GetSeedCount(), playerTwoStorehouse.GetSeedCount(), currentPlayer);
             }
 
             bool isExtraTurn = (currentPlayer == 1 && lastHole == playerOneStorehouse) || (currentPlayer == 2 && lastHole == playerTwoStorehouse);
 
             if (isExtraTurn)
             {
-                uiController.UpdateGameStatus("Giliran Tambahan!");
+                if (currentPlayer == 1) p1ExtraTurns++;
+                else p2ExtraTurns++;
+                
+                if (uiController != null) uiController.UpdateGameStatus("Giliran Tambahan!");
                 if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(AudioManager.Instance.extraTurn);
+                isSowing = false;
+                UpdateUIAndIndicators();
                 CheckGameOver();
-                isSowing = false; 
-                yield break; 
+                yield break;
             }
-            
+
             if (lastHole.GetSeedCount() == 1 && IsHoleBelongsToPlayer(lastHole, currentPlayer))
             {
                 Hole opposite = GetOppositeHole(lastHole);
                 if (opposite != null && opposite.GetSeedCount() > 0)
                 {
-                    if (showDebug) Debug.Log($"[GameManager] Player {currentPlayer} MENEMBAK lubang {opposite.name}");
                     int captured = opposite.ClearSeeds() + lastHole.ClearSeeds();
+                    
+                    if (currentPlayer == 1) {
+                        if (captured > p1MaxSeedsCaptured) p1MaxSeedsCaptured = captured;
+                    } else {
+                        if (captured > p2MaxSeedsCaptured) p2MaxSeedsCaptured = captured;
+                    }
+
                     Hole store = (currentPlayer == 1) ? playerOneStorehouse : playerTwoStorehouse;
                     store.AddSeeds(captured);
-                    
                     if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(AudioManager.Instance.seedCapture);
-                    UpdateUI();
                 }
                 break;
             }
 
-            if (lastHole.GetSeedCount() > 1)
+            if (lastHole.GetSeedCount() > 1 && lastHole.GetHoleType() != HoleType.Storehouse)
             {
-                if (showDebug) Debug.Log("[GameManager] Melanjutkan menabur dari " + lastHole.name);
                 currentHole = lastHole;
                 if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(AudioManager.Instance.seedPickup);
                 yield return new WaitForSeconds(0.5f);
             }
-            else
-            {
-                break;
-            }
+            else { break; }
         }
 
-        CheckGameOver();
-        if(isGameActive)
-        {
-            bool isExtraTurn = (currentPlayer == 1 && lastHole == playerOneStorehouse) || (currentPlayer == 2 && lastHole == playerTwoStorehouse);
-
-            if (!isExtraTurn)
-            {
-                currentPlayer = (currentPlayer == 1) ? 2 : 1;
-                UpdateUI();
-            }
-        }
+        currentPlayer = (currentPlayer == 1) ? 2 : 1;
         isSowing = false;
+        UpdateUIAndIndicators();
+        CheckGameOver();
     }
 
-    private void CheckGameOver()
-    {
-        bool p1SideEmpty = true;
-        foreach(var hole in playerOneHoles) if(hole.GetSeedCount() > 0) p1SideEmpty = false;
-
-        bool p2SideEmpty = true;
-        foreach(var hole in playerTwoHoles) if(hole.GetSeedCount() > 0) p2SideEmpty = false;
-
-        if (p1SideEmpty || p2SideEmpty)
-        {
-            isGameActive = false;
-            int p1Remaining = 0; foreach (var hole in playerOneHoles) p1Remaining += hole.ClearSeeds(); playerOneStorehouse.AddSeeds(p1Remaining);
-            int p2Remaining = 0; foreach (var hole in playerTwoHoles) p2Remaining += hole.ClearSeeds(); playerTwoStorehouse.AddSeeds(p2Remaining);
-            UpdateUI();
-
-            int p1Score = playerOneStorehouse.GetSeedCount();
-            int p2Score = playerTwoStorehouse.GetSeedCount();
-
-            AudioClip finalSfx = null;
-
-            if (p1Score > p2Score)
-            {
-                finalSfx = AudioManager.Instance.gameWin;
-                uiController.ShowGameOver(true); 
-            }
-            else if (p2Score > p1Score)
-            {
-                finalSfx = (config != null && config.gameMode == GameMode.PlayerVsAI) ? AudioManager.Instance.gameLose : AudioManager.Instance.gameWin;
-                uiController.ShowGameOver(false); 
-            }
-            else
-            {
-                finalSfx = AudioManager.Instance.gameWin;
-                uiController.ShowGameOver(true, true); 
-            }
-            if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(finalSfx);
-        }
-    }
-
-    private void UpdateUI()
+    private void UpdateUIAndIndicators()
     {
         if (uiController != null)
         {
@@ -235,26 +202,82 @@ public class GameManager : MonoBehaviour
         }
         UpdateTurnIndicators();
     }
+
     private void UpdateTurnIndicators()
     {
         if (isSowing)
         {
-             foreach(var hole in playerOneHoles) hole.SetTurnHighlight(false);
-             foreach(var hole in playerTwoHoles) hole.SetTurnHighlight(false);
-             return;
+            foreach (var hole in playerOneHoles) hole.SetTurnHighlight(false);
+            foreach (var hole in playerTwoHoles) hole.SetTurnHighlight(false);
+            return;
         }
 
-        foreach(var hole in playerOneHoles)
+        foreach (var hole in playerOneHoles)
         {
             hole.SetTurnHighlight(currentPlayer == 1 && IsValidMove(hole));
         }
-        foreach(var hole in playerTwoHoles)
+        foreach (var hole in playerTwoHoles)
         {
             hole.SetTurnHighlight(currentPlayer == 2 && IsValidMove(hole));
         }
     }
+
+    private void CheckGameOver()
+    {
+        if (!isGameActive) return;
+        bool p1SideEmpty = true; foreach (var hole in playerOneHoles) if (hole.GetSeedCount() > 0) p1SideEmpty = false;
+        bool p2SideEmpty = true; foreach (var hole in playerTwoHoles) if (hole.GetSeedCount() > 0) p2SideEmpty = false;
+
+        if (p1SideEmpty || p2SideEmpty)
+        {
+            isGameActive = false;
+            if (AudioManager.Instance != null) AudioManager.Instance.StopMusic();
+            int p1Remaining = 0; foreach (var hole in playerOneHoles) p1Remaining += hole.ClearSeeds(); playerOneStorehouse.AddSeeds(p1Remaining);
+            int p2Remaining = 0; foreach (var hole in playerTwoHoles) p2Remaining += hole.ClearSeeds(); playerTwoStorehouse.AddSeeds(p2Remaining);
+            UpdateUIAndIndicators();
+            int p1Score = playerOneStorehouse.GetSeedCount();
+            int p2Score = playerTwoStorehouse.GetSeedCount();
+            AudioClip finalSfx; bool isWin = p1Score > p2Score; bool isDraw = p1Score == p2Score;
+            if (isDraw) { finalSfx = AudioManager.Instance.gameWin; } else if (isWin) { finalSfx = AudioManager.Instance.gameWin; } else { finalSfx = (config != null && config.gameMode == GameMode.PlayerVsAI) ? AudioManager.Instance.gameLose : AudioManager.Instance.gameWin; }
+            if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(finalSfx);
+            if (uiController != null)
+            {
+                uiController.ShowGameOver(isWin, isDraw);
+                uiController.UpdateGameEndStats(p1Score, p2Score, p1MaxSeedsCaptured, p2MaxSeedsCaptured, p1ExtraTurns, p2ExtraTurns);
+            }
+        }
+    }
+
     public bool IsValidMove(Hole hole) { if (hole == null || hole.GetHoleType() == HoleType.Storehouse || hole.GetSeedCount() == 0) return false; if (currentPlayer == 1 && hole.GetHoleType() != HoleType.PlayerOne) return false; if (currentPlayer == 2 && hole.GetHoleType() != HoleType.PlayerTwo) return false; return true; }
     private bool IsHoleBelongsToPlayer(Hole hole, int player) { return (player == 1 && hole.GetHoleType() == HoleType.PlayerOne) || (player == 2 && hole.GetHoleType() == HoleType.PlayerTwo); }
-    private Hole GetOppositeHole(Hole hole) { if (hole.GetHoleType() == HoleType.PlayerOne) { int idx = hole.GetHoleIndex(); return playerTwoHoles[idx]; } else if (hole.GetHoleType() == HoleType.PlayerTwo) { int idx = hole.GetHoleIndex(); return playerOneHoles[idx]; } return null; }
-    private Hole GetNextHole(Hole current) { if (currentPlayer == 1) { if (current.GetHoleType() == HoleType.PlayerOne) { int idx = current.GetHoleIndex(); if (idx > 0) return playerOneHoles[idx - 1]; else return playerOneStorehouse; } else if (current == playerOneStorehouse) { return playerTwoHoles[0]; } else { int idx = current.GetHoleIndex(); if (idx < playerTwoHoles.Length - 1) return playerTwoHoles[idx + 1]; else return playerOneHoles[playerOneHoles.Length - 1]; } } else { if (current.GetHoleType() == HoleType.PlayerTwo) { int idx = current.GetHoleIndex(); if (idx < playerTwoHoles.Length - 1) return playerTwoHoles[idx + 1]; else return playerTwoStorehouse; } else if (current == playerTwoStorehouse) { return playerOneHoles[playerOneHoles.Length - 1]; } else { int idx = current.GetHoleIndex(); if (idx > 0) return playerOneHoles[idx - 1]; else return playerTwoHoles[0]; } } return null; }
+    private Hole GetOppositeHole(Hole hole) { if (hole.GetHoleType() == HoleType.PlayerOne) { int idx = hole.GetHoleIndex(); return playerTwoHoles[playerTwoHoles.Length - 1 - idx]; } else if (hole.GetHoleType() == HoleType.PlayerTwo) { int idx = hole.GetHoleIndex(); return playerOneHoles[playerOneHoles.Length - 1 - idx]; } return null; }
+
+    private Hole GetNextHole(Hole current)
+    {
+        if (current.GetHoleType() == HoleType.PlayerOne)
+        {
+            int idx = current.GetHoleIndex();
+            if (idx < playerOneHoles.Length - 1)
+                return playerOneHoles[idx + 1];
+            else
+                return playerOneStorehouse;
+        }
+        else if (current == playerOneStorehouse)
+        {
+            return playerTwoHoles[0];
+        }
+        else if (current.GetHoleType() == HoleType.PlayerTwo)
+        {
+            int idx = current.GetHoleIndex();
+            if (idx < playerTwoHoles.Length - 1)
+                return playerTwoHoles[idx + 1];
+            else
+                return playerTwoStorehouse;
+        }
+        else if (current == playerTwoStorehouse)
+        {
+            return playerOneHoles[0];
+        }
+        return null;
+    }
 }

@@ -7,6 +7,8 @@ public class UIButtonController : MonoBehaviour
     [SerializeField] private GameManager gameManager;
     [SerializeField] private UIController uiController;
 
+    private bool isFastForward = false;
+
     private void Awake()
     {
         if (gameManager == null) gameManager = GameManager.Instance;
@@ -19,6 +21,13 @@ public class UIButtonController : MonoBehaviour
         {
             AudioManager.Instance.PlaySFX(AudioManager.Instance.buttonClick);
         }
+    }
+
+    public void OnFastForwardButton()
+    {
+        PlayClickSound();
+        isFastForward = !isFastForward;
+        Time.timeScale = isFastForward ? 2.0f : 1.0f;
     }
     
     public void OnPauseButton()
@@ -42,7 +51,8 @@ public class UIButtonController : MonoBehaviour
     public void OnRestartButton()
     {
         PlayClickSound();
-        Time.timeScale = 1f; 
+        Time.timeScale = 1.0f; 
+        isFastForward = false;
         if (gameManager != null)
         {
             gameManager.RestartGame();
@@ -52,7 +62,7 @@ public class UIButtonController : MonoBehaviour
     public void OnExitButton()
     {
         PlayClickSound();
-        Time.timeScale = 1f; 
+        Time.timeScale = 1.0f;
         Debug.Log("[UIButtonController] Exit pressed");
         #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
@@ -61,28 +71,23 @@ public class UIButtonController : MonoBehaviour
         #endif
     }
 
-    // --- FUNGSI INI DIPERBARUI DENGAN LOGIKA BARU ---
     public void OnSettingsButton()
     {
         PlayClickSound();
         if (uiController == null || gameManager == null) return;
-
-        // Tentukan apakah panel setting akan aktif atau nonaktif
         bool settingsWillBeActive = !uiController.settingsPanel.activeSelf;
         uiController.settingsPanel.SetActive(settingsWillBeActive);
-
-        // Jika game sedang di-pause, kita juga harus mengatur PausePanel
         if (gameManager.IsPaused)
         {
-            // Jika settings baru saja AKTIF, maka sembunyikan PausePanel.
-            // Jika settings baru saja NONAKTIF, maka tampilkan lagi PausePanel.
             gameManager.pausePanel.SetActive(!settingsWillBeActive);
         }
     }
-    // --------------------------------------------------
-    
-    public void OnDifficultyChanged(int index) { if (uiController != null && uiController.difficultyDropdown != null) { Debug.Log($"[UIButtonController] Difficulty changed: {uiController.difficultyDropdown.options[index].text}"); } }
-    public void OnToggleSound(bool isOn) { if (uiController != null) { Debug.Log("[UIButtonController] Sound toggled: " + (isOn ? "ON" : "OFF")); } }
-    public void OnMusicVolumeChanged(float value) { if (uiController != null) { Debug.Log("[UIButtonController] Music volume changed: " + value); } }
-    public void OnSFXVolumeChanged(float value) { if (uiController != null) { Debug.Log("[UIButtonController] SFX volume changed: " + value); } }
+
+    public void OnMainMenuButton()
+    {
+        PlayClickSound();
+        Time.timeScale = 1.0f;
+        
+        SceneManager.LoadScene("MainMenu");
+    }
 }

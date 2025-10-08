@@ -23,14 +23,22 @@ public class AudioManager : MonoBehaviour
         if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
         else { Destroy(gameObject); }
     }
-
-    public void StartMusic()
+    
+    public void PlayMusic()
     {
-        if (backgroundMusic != null)
+        if (backgroundMusic != null && !musicSource.isPlaying)
         {
             musicSource.clip = backgroundMusic;
             musicSource.loop = true;
             musicSource.Play();
+        }
+    }
+
+    public void StopMusic()
+    {
+        if (musicSource.isPlaying)
+        {
+            musicSource.Stop();
         }
     }
 

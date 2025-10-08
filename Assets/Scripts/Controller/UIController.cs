@@ -26,15 +26,17 @@ public class UIController : MonoBehaviour
     public TMP_Dropdown difficultyDropdown;
 
     [Header("Game End UI")]
-    public Image winnerImage;     
-    public Sprite winSprite;     
-    public Sprite loseSprite;   
-    public Sprite drawSprite;    
+    public Image winnerImage;
+    public Sprite winSprite;
+    public Sprite loseSprite;
+    public Sprite drawSprite;
+    public TMP_Text finalScoreText;
+    public TMP_Text statsText;
 
     [Header("Pause Panel UI")]
     public TMP_Text pausePanelScoreText;
     public TMP_Text pausePanelTurnText;
-    
+
     [Header("Indicators")]
     public GameObject playerOneIndicator;
     public GameObject playerTwoIndicator;
@@ -55,7 +57,7 @@ public class UIController : MonoBehaviour
         difficultyDropdown.value = (int)config.aiDifficulty;
         OnMusicVolumeChanged(config.musicVolume);
         OnSFXVolumeChanged(config.sfxVolume);
-        
+
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.SetMusicVolume(config.musicVolume);
@@ -63,19 +65,36 @@ public class UIController : MonoBehaviour
             AudioManager.Instance.ToggleSound(config.soundEnabled);
         }
     }
-    
+
     public void ShowGameOver(bool isWin, bool isDraw = false)
     {
         if (gameEndPanel != null) gameEndPanel.SetActive(true);
         if (winnerImage != null)
         {
             Sprite spriteToDisplay = isWin ? winSprite : loseSprite;
-            if (isDraw)
+            if (isDraw && drawSprite != null)
             {
                 spriteToDisplay = drawSprite;
             }
-
             winnerImage.sprite = spriteToDisplay;
+        }
+    }
+
+    public void UpdateGameEndStats(int p1Score, int p2Score, int p1MaxCap, int p2MaxCap, int p1Extra, int p2Extra)
+    {
+        if (finalScoreText != null)
+        {
+            finalScoreText.text = $"Skor Akhir: {p1Score} - {p2Score}";
+        }
+
+        if (statsText != null)
+        {
+            statsText.text = $"<u>Pemain 1</u>\n" +
+                             $"Biji Ditangkap Terbanyak: {p1MaxCap}\n" +
+                             $"Giliran Tambahan: {p1Extra}\n\n" +
+                             $"<u>Pemain 2</u>\n" +
+                             $"Biji Ditangkap Terbanyak: {p2MaxCap}\n" +
+                             $"Giliran Tambahan: {p2Extra}";
         }
     }
     
@@ -90,6 +109,7 @@ public class UIController : MonoBehaviour
             pausePanelTurnText.text = $"Giliran: Pemain {currentPlayer}";
         }
     }
+    
     public void UpdateScores(int playerOneScore, int playerTwoScore, int currentPlayer)
     {
         if (playerOneScoreTxt != null) playerOneScoreTxt.text = playerOneScore.ToString();
@@ -103,23 +123,7 @@ public class UIController : MonoBehaviour
     public void UpdateSeedCount(Hole hole, int count) { if (hole != null && hole.seedText != null) { hole.seedText.text = count.ToString(); } }
     public void HideGameOver() { if (gameEndPanel != null) gameEndPanel.SetActive(false); }
     
-    public void OnMusicVolumeChanged(float value)
-    {
-        if (musicVolumeLabel != null) musicVolumeLabel.text = $"Music: {Mathf.RoundToInt(value * 100)}%";
-        if (config != null) config.musicVolume = value;
-        if (AudioManager.Instance != null) AudioManager.Instance.SetMusicVolume(value);
-    }
-
-    public void OnSFXVolumeChanged(float value)
-    {
-        if (sfxVolumeLabel != null) sfxVolumeLabel.text = $"SFX: {Mathf.RoundToInt(value * 100)}%";
-        if (config != null) config.sfxVolume = value;
-        if (AudioManager.Instance != null) AudioManager.Instance.SetSFXVolume(value);
-    }
-
-    public void OnSoundToggleChanged(bool isOn)
-    {
-        if (config != null) config.soundEnabled = isOn;
-        if (AudioManager.Instance != null) AudioManager.Instance.ToggleSound(isOn);
-    }
+    public void OnMusicVolumeChanged(float value) { if (musicVolumeLabel != null) musicVolumeLabel.text = $"Music: {Mathf.RoundToInt(value * 100)}%"; if (config != null) config.musicVolume = value; if (AudioManager.Instance != null) AudioManager.Instance.SetMusicVolume(value); }
+    public void OnSFXVolumeChanged(float value) { if (sfxVolumeLabel != null) sfxVolumeLabel.text = $"SFX: {Mathf.RoundToInt(value * 100)}%"; if (config != null) config.sfxVolume = value; if (AudioManager.Instance != null) AudioManager.Instance.SetSFXVolume(value); }
+    public void OnSoundToggleChanged(bool isOn) { if (config != null) config.soundEnabled = isOn; if (AudioManager.Instance != null) AudioManager.Instance.ToggleSound(isOn); }
 }
