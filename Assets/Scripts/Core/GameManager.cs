@@ -102,6 +102,10 @@ public class GameManager : MonoBehaviour
     public void SelectHole(Hole hole)
     {
         if (!isGameActive || isSowing || !IsValidMove(hole)) return;
+
+        isSowing = true; 
+        UpdateTurnIndicators();
+
         if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(AudioManager.Instance.seedPickup);
         StartCoroutine(SowSeedsCoroutine(hole));
     }
@@ -174,12 +178,12 @@ public class GameManager : MonoBehaviour
         if(isGameActive)
         {
             bool isExtraTurn = (currentPlayer == 1 && lastHole == playerOneStorehouse) || (currentPlayer == 2 && lastHole == playerTwoStorehouse);
-            if(!isExtraTurn)
+
+            if (!isExtraTurn)
             {
                 currentPlayer = (currentPlayer == 1) ? 2 : 1;
+                UpdateUI();
             }
-            UpdateUI();
-            UpdateTurnIndicators();
         }
         isSowing = false;
     }
@@ -229,9 +233,17 @@ public class GameManager : MonoBehaviour
         {
             uiController.UpdateScores(playerOneStorehouse.GetSeedCount(), playerTwoStorehouse.GetSeedCount(), currentPlayer);
         }
+        UpdateTurnIndicators();
     }
     private void UpdateTurnIndicators()
     {
+        if (isSowing)
+        {
+             foreach(var hole in playerOneHoles) hole.SetTurnHighlight(false);
+             foreach(var hole in playerTwoHoles) hole.SetTurnHighlight(false);
+             return;
+        }
+
         foreach(var hole in playerOneHoles)
         {
             hole.SetTurnHighlight(currentPlayer == 1 && IsValidMove(hole));
@@ -241,7 +253,6 @@ public class GameManager : MonoBehaviour
             hole.SetTurnHighlight(currentPlayer == 2 && IsValidMove(hole));
         }
     }
-    
     public bool IsValidMove(Hole hole) { if (hole == null || hole.GetHoleType() == HoleType.Storehouse || hole.GetSeedCount() == 0) return false; if (currentPlayer == 1 && hole.GetHoleType() != HoleType.PlayerOne) return false; if (currentPlayer == 2 && hole.GetHoleType() != HoleType.PlayerTwo) return false; return true; }
     private bool IsHoleBelongsToPlayer(Hole hole, int player) { return (player == 1 && hole.GetHoleType() == HoleType.PlayerOne) || (player == 2 && hole.GetHoleType() == HoleType.PlayerTwo); }
     private Hole GetOppositeHole(Hole hole) { if (hole.GetHoleType() == HoleType.PlayerOne) { int idx = hole.GetHoleIndex(); return playerTwoHoles[idx]; } else if (hole.GetHoleType() == HoleType.PlayerTwo) { int idx = hole.GetHoleIndex(); return playerOneHoles[idx]; } return null; }
