@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   initialSeedsPerHole: 7
   animationSpeed: 0.01
-  musicVolume: 0.7
-  sfxVolume: 0.8
+  musicVolume: 0.01
+  sfxVolume: 0.05
   soundEnabled: 1
   aiDifficulty: 1
   gameMode: 0

@@ -19,13 +19,15 @@ public class GameManager : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private UIController uiController;
-    [SerializeField] private GameConfig config;
+    [SerializeField] public GameConfig config; 
     [SerializeField] public GameObject pausePanel;
     [SerializeField] private bool sowDebugLogs = false;
+    [SerializeField] private AIController aiController; 
 
     private int currentPlayer = 1;
     private bool isSowing = false;
     private bool isGameActive = true;
+    private bool isAITurn = false; 
 
     private int p1ExtraTurns;
     private int p2ExtraTurns;
@@ -49,6 +51,10 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        if (aiController != null)
+        {
+            aiController.Initialize(this, playerTwoHoles, playerOneHoles, playerTwoStorehouse);
+        }
         RestartGame();
     }
 
@@ -84,6 +90,7 @@ public class GameManager : MonoBehaviour
         currentPlayer = 1;
         isGameActive = true;
         isSowing = false;
+        isAITurn = false; 
         if (uiController != null) uiController.HideGameOver();
 
         p1ExtraTurns = 0;
@@ -156,6 +163,12 @@ public class GameManager : MonoBehaviour
                 isSowing = false;
                 UpdateUIAndIndicators();
                 CheckGameOver();
+
+                if (!CheckGameOver() && config.gameMode == GameMode.PlayerVsAI && currentPlayer == 2)
+                {
+                    isAITurn = true;
+                    aiController.MakeMove(config.aiDifficulty);
+                }
                 yield break;
             }
 
@@ -190,6 +203,20 @@ public class GameManager : MonoBehaviour
 
         currentPlayer = (currentPlayer == 1) ? 2 : 1;
         isSowing = false;
+        isAITurn = false;
+        UpdateUIAndIndicators();
+
+        if (!CheckGameOver() && config.gameMode == GameMode.PlayerVsAI && currentPlayer == 2)
+        {
+            isAITurn = true;
+            aiController.MakeMove(config.aiDifficulty);
+        }
+    }
+    
+    public void EndTurnAfterAI()
+    {
+        currentPlayer = 1;
+        isAITurn = false;
         UpdateUIAndIndicators();
         CheckGameOver();
     }
@@ -205,7 +232,7 @@ public class GameManager : MonoBehaviour
 
     private void UpdateTurnIndicators()
     {
-        if (isSowing)
+        if (isSowing || isAITurn)
         {
             foreach (var hole in playerOneHoles) hole.SetTurnHighlight(false);
             foreach (var hole in playerTwoHoles) hole.SetTurnHighlight(false);
@@ -222,9 +249,9 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void CheckGameOver()
+    private bool CheckGameOver()
     {
-        if (!isGameActive) return;
+        if (!isGameActive) return true;
         bool p1SideEmpty = true; foreach (var hole in playerOneHoles) if (hole.GetSeedCount() > 0) p1SideEmpty = false;
         bool p2SideEmpty = true; foreach (var hole in playerTwoHoles) if (hole.GetSeedCount() > 0) p2SideEmpty = false;
 
@@ -245,13 +272,20 @@ public class GameManager : MonoBehaviour
                 uiController.ShowGameOver(isWin, isDraw);
                 uiController.UpdateGameEndStats(p1Score, p2Score, p1MaxSeedsCaptured, p2MaxSeedsCaptured, p1ExtraTurns, p2ExtraTurns);
             }
+            return true;
         }
+        return false;
     }
 
     public bool IsValidMove(Hole hole) { if (hole == null || hole.GetHoleType() == HoleType.Storehouse || hole.GetSeedCount() == 0) return false; if (currentPlayer == 1 && hole.GetHoleType() != HoleType.PlayerOne) return false; if (currentPlayer == 2 && hole.GetHoleType() != HoleType.PlayerTwo) return false; return true; }
     private bool IsHoleBelongsToPlayer(Hole hole, int player) { return (player == 1 && hole.GetHoleType() == HoleType.PlayerOne) || (player == 2 && hole.GetHoleType() == HoleType.PlayerTwo); }
     private Hole GetOppositeHole(Hole hole) { if (hole.GetHoleType() == HoleType.PlayerOne) { int idx = hole.GetHoleIndex(); return playerTwoHoles[playerTwoHoles.Length - 1 - idx]; } else if (hole.GetHoleType() == HoleType.PlayerTwo) { int idx = hole.GetHoleIndex(); return playerOneHoles[playerOneHoles.Length - 1 - idx]; } return null; }
 
+    public Hole GetNextHolePublic(Hole current)
+    {
+        return GetNextHole(current);
+    }
+    
     private Hole GetNextHole(Hole current)
     {
         if (current.GetHoleType() == HoleType.PlayerOne)
