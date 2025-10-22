@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
 
 public class UIController : MonoBehaviour
 {
@@ -41,84 +42,115 @@ public class UIController : MonoBehaviour
     public GameObject playerOneIndicator;
     public GameObject playerTwoIndicator;
 
+    private int lastP1Score = 0;
+    private int lastP2Score = 0;
+
     private void Start()
     {
         if (settingsPanel != null) settingsPanel.SetActive(false);
         if (gameEndPanel != null) gameEndPanel.SetActive(false);
-        LoadAndCheckSettings();
+        if (gameStatusTxt != null) gameStatusTxt.text = "";
+
+        if (playerOneScoreTxt != null) playerOneScoreTxt.text = "0";
+        if (playerTwoScoreTxt != null) playerTwoScoreTxt.text = "0";
+        lastP1Score = 0;
+        lastP2Score = 0;
+
+        LoadSettingsFromConfig();
     }
 
-    private void LoadAndCheckSettings()
+    public void LoadSettingsFromConfig()
     {
-        if (config == null) { Debug.LogError("GameConfig is not assigned in the UIController Inspector!", this.gameObject); return; }
-        musicVolumeSlider.value = config.musicVolume;
-        sfxVolumeSlider.value = config.sfxVolume;
-        soundToggle.isOn = config.soundEnabled;
-        difficultyDropdown.value = (int)config.aiDifficulty;
-        OnMusicVolumeChanged(config.musicVolume);
-        OnSFXVolumeChanged(config.sfxVolume);
+        if (config == null) return;
+        if (musicVolumeSlider != null) musicVolumeSlider.value = config.musicVolume;
+        if (sfxVolumeSlider != null) sfxVolumeSlider.value = config.sfxVolume;
+        if (soundToggle != null) soundToggle.isOn = config.soundEnabled;
+        if (difficultyDropdown != null) difficultyDropdown.value = (int)config.aiDifficulty;
+    }
 
-        if (AudioManager.Instance != null)
+    public void ShowGameOver(bool playerOneWon, bool isDraw)
+    {
+        if (gameEndPanel == null) return;
+        gameEndPanel.SetActive(true);
+        if (isDraw)
         {
-            AudioManager.Instance.SetMusicVolume(config.musicVolume);
-            AudioManager.Instance.SetSFXVolume(config.sfxVolume);
-            AudioManager.Instance.ToggleSound(config.soundEnabled);
+            winnerImage.sprite = drawSprite;
+        }
+        else
+        {
+            winnerImage.sprite = playerOneWon ? winSprite : loseSprite;
         }
     }
 
-    public void ShowGameOver(bool isWin, bool isDraw = false)
+    public void UpdateGameEndStats(int p1Score, int p2Score, int p1MaxCapture, int p2MaxCapture, int p1ExtraTurns, int p2ExtraTurns)
     {
-        if (gameEndPanel != null) gameEndPanel.SetActive(true);
-        if (winnerImage != null)
-        {
-            Sprite spriteToDisplay = isWin ? winSprite : loseSprite;
-            if (isDraw && drawSprite != null)
-            {
-                spriteToDisplay = drawSprite;
-            }
-            winnerImage.sprite = spriteToDisplay;
-        }
-    }
-
-    public void UpdateGameEndStats(int p1Score, int p2Score, int p1MaxCap, int p2MaxCap, int p1Extra, int p2Extra)
-    {
-        if (finalScoreText != null)
-        {
-            finalScoreText.text = $"Skor Akhir: {p1Score} - {p2Score}";
-        }
-
+        if (finalScoreText != null) finalScoreText.text = $"SKOR AKHIR\n{p1Score} - {p2Score}";
         if (statsText != null)
         {
-            statsText.text = $"<u>Pemain 1</u>\n" +
-                             $"Biji Ditangkap Terbanyak: {p1MaxCap}\n" +
-                             $"Giliran Tambahan: {p1Extra}\n\n" +
-                             $"<u>Pemain 2</u>\n" +
-                             $"Biji Ditangkap Terbanyak: {p2MaxCap}\n" +
-                             $"Giliran Tambahan: {p2Extra}";
+            statsText.text = $"P1 Max Capture: {p1MaxCapture}\nP2 Max Capture: {p2MaxCapture}\nP1 Extra Turns: {p1ExtraTurns}\nP2 Extra Turns: {p2ExtraTurns}";
         }
     }
-    
-    public void UpdatePausePanelInfo(int p1Score, int p2Score, int currentPlayer)
+
+    public void UpdatePausePanelInfo(int p1Score, int p2Score, int playerTurn)
     {
-        if (pausePanelScoreText != null)
-        {
-            pausePanelScoreText.text = $"SKOR: {p1Score} - {p2Score}";
-        }
-        if (pausePanelTurnText != null)
-        {
-            pausePanelTurnText.text = $"Giliran: Pemain {currentPlayer}";
-        }
+        if (pausePanelScoreText != null) pausePanelScoreText.text = $"{p1Score} - {p2Score}";
+        if (pausePanelTurnText != null) pausePanelTurnText.text = $"Giliran Pemain: {playerTurn}";
     }
-    
+
     public void UpdateScores(int playerOneScore, int playerTwoScore, int currentPlayer)
     {
-        if (playerOneScoreTxt != null) playerOneScoreTxt.text = playerOneScore.ToString();
-        if (playerTwoScoreTxt != null) playerTwoScoreTxt.text = playerTwoScore.ToString();
+        if (playerOneScoreTxt != null)
+        {
+            if (playerOneScore != lastP1Score)
+            {
+                playerOneScoreTxt.text = playerOneScore.ToString();
+                StopCoroutine(AnimateScoreText(playerOneScoreTxt));
+                StartCoroutine(AnimateScoreText(playerOneScoreTxt));
+                lastP1Score = playerOneScore;
+            }
+        }
+
+        if (playerTwoScoreTxt != null)
+        {
+            if (playerTwoScore != lastP2Score)
+            {
+                playerTwoScoreTxt.text = playerTwoScore.ToString();
+                StopCoroutine(AnimateScoreText(playerTwoScoreTxt)); 
+                StartCoroutine(AnimateScoreText(playerTwoScoreTxt)); 
+                lastP2Score = playerTwoScore;
+            }
+        }
+        
         if (currentPlayerTxt != null) { currentPlayerTxt.text = $"Giliran Pemain {currentPlayer}"; currentPlayerTxt.color = (currentPlayer == 1) ? Color.cyan : Color.magenta; }
         if (playerOneIndicator != null) playerOneIndicator.SetActive(currentPlayer == 1);
         if (playerTwoIndicator != null) playerTwoIndicator.SetActive(currentPlayer == 2);
     }
-    
+
+    private IEnumerator AnimateScoreText(TMP_Text scoreText)
+    {
+        Vector3 originalScale = scoreText.transform.localScale;
+        Vector3 targetScale = originalScale * 1.3f;
+        float duration = 0.1f;
+
+        float timer = 0;
+        while (timer < duration)
+        {
+            scoreText.transform.localScale = Vector3.Lerp(originalScale, targetScale, timer / duration);
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        scoreText.transform.localScale = targetScale;
+
+        timer = 0;
+        while (timer < duration)
+        {
+            scoreText.transform.localScale = Vector3.Lerp(targetScale, originalScale, timer / duration);
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        scoreText.transform.localScale = originalScale;
+    }
+
     public void UpdateGameStatus(string message) { if (gameStatusTxt != null) { gameStatusTxt.text = message; } }
     public void UpdateSeedCount(Hole hole, int count) { if (hole != null && hole.seedText != null) { hole.seedText.text = count.ToString(); } }
     public void HideGameOver() { if (gameEndPanel != null) gameEndPanel.SetActive(false); }
@@ -126,4 +158,5 @@ public class UIController : MonoBehaviour
     public void OnMusicVolumeChanged(float value) { if (musicVolumeLabel != null) musicVolumeLabel.text = $"Music: {Mathf.RoundToInt(value * 100)}%"; if (config != null) config.musicVolume = value; if (AudioManager.Instance != null) AudioManager.Instance.SetMusicVolume(value); }
     public void OnSFXVolumeChanged(float value) { if (sfxVolumeLabel != null) sfxVolumeLabel.text = $"SFX: {Mathf.RoundToInt(value * 100)}%"; if (config != null) config.sfxVolume = value; if (AudioManager.Instance != null) AudioManager.Instance.SetSFXVolume(value); }
     public void OnSoundToggleChanged(bool isOn) { if (config != null) config.soundEnabled = isOn; if (AudioManager.Instance != null) AudioManager.Instance.ToggleSound(isOn); }
+    public void OnDifficultyChanged(int value) { if (config != null) config.aiDifficulty = (AILevel)value; }
 }

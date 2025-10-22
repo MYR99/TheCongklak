@@ -53,7 +53,7 @@ public class GameManager : MonoBehaviour
     {
         if (aiController != null)
         {
-            aiController.Initialize(this, playerTwoHoles, playerOneHoles, playerTwoStorehouse);
+            aiController.Initialize(this, playerTwoHoles, playerOneHoles, playerTwoStorehouse, playerOneStorehouse);
         }
         RestartGame();
     }

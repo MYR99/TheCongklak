@@ -20,21 +20,19 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private TMP_Text musicVolumeLabel;
     [SerializeField] private Slider sfxVolumeSlider;
     [SerializeField] private TMP_Text sfxVolumeLabel;
+    [SerializeField] private Toggle soundToggle;
 
     private void Start()
     {
-
-        mainMenuPanel.SetActive(true);
-        modeSelectPanel.SetActive(false);
-        aiDifficultyPanel.SetActive(false);
-        settingsPanel.SetActive(false);
 
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlayMusic();
         }
-        
+
         LoadSettingsToUI();
+
+        ShowMainMenu();
     }
 
     private void PlayClickSound()
@@ -50,33 +48,40 @@ public class MainMenuController : MonoBehaviour
         PlayClickSound();
         mainMenuPanel.SetActive(false);
         modeSelectPanel.SetActive(true);
+        aiDifficultyPanel.SetActive(false);
+        settingsPanel.SetActive(false);
     }
 
     public void ShowAIDifficultyPanel()
     {
         PlayClickSound();
+        mainMenuPanel.SetActive(false);
         modeSelectPanel.SetActive(false);
         aiDifficultyPanel.SetActive(true);
+        settingsPanel.SetActive(false);
     }
 
     public void ShowMainMenu()
     {
         PlayClickSound();
-
+        mainMenuPanel.SetActive(true);
         modeSelectPanel.SetActive(false);
         aiDifficultyPanel.SetActive(false);
         settingsPanel.SetActive(false);
-        mainMenuPanel.SetActive(true);
     }
 
     public void ShowSettingsPanel()
     {
         PlayClickSound();
-        settingsPanel.SetActive(true);
         mainMenuPanel.SetActive(false);
+        modeSelectPanel.SetActive(false);
+        aiDifficultyPanel.SetActive(false);
+        settingsPanel.SetActive(true);
     }
+    
+    // --- Logika Pemilihan Mode ---
 
-    public void SelectGameMode(int mode) 
+    public void SelectGameMode(int mode)
     {
         if (gameConfig == null)
         {
@@ -129,8 +134,11 @@ public class MainMenuController : MonoBehaviour
         
         musicVolumeSlider.value = gameConfig.musicVolume;
         sfxVolumeSlider.value = gameConfig.sfxVolume;
+        soundToggle.isOn = gameConfig.soundEnabled;
+        
         OnMusicVolumeChanged(gameConfig.musicVolume);
         OnSFXVolumeChanged(gameConfig.sfxVolume);
+        OnSoundToggleChanged(gameConfig.soundEnabled);
     }
 
     public void OnMusicVolumeChanged(float value)
@@ -145,5 +153,11 @@ public class MainMenuController : MonoBehaviour
         if (gameConfig != null) gameConfig.sfxVolume = value;
         if (sfxVolumeLabel != null) sfxVolumeLabel.text = $"SFX: {Mathf.RoundToInt(value * 100)}%";
         if (AudioManager.Instance != null) AudioManager.Instance.SetSFXVolume(value);
+    }
+
+    public void OnSoundToggleChanged(bool isOn)
+    {
+        if (gameConfig != null) gameConfig.soundEnabled = isOn;
+        if (AudioManager.Instance != null) AudioManager.Instance.ToggleSound(isOn);
     }
 }
