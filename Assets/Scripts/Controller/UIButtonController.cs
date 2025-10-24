@@ -1,13 +1,13 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class UIButtonController : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private GameManager gameManager;
     [SerializeField] private UIController uiController;
-
-    private bool isFastForward = false;
+    [SerializeField] private Toggle fastForwardToggle;
 
     private void Awake()
     {
@@ -23,11 +23,12 @@ public class UIButtonController : MonoBehaviour
         }
     }
 
-    public void OnFastForwardButton()
+    /// <summary>
+    /// </summary>
+    public void OnFastForwardToggle(bool isOn)
     {
         PlayClickSound();
-        isFastForward = !isFastForward;
-        Time.timeScale = isFastForward ? 2.0f : 1.0f;
+        Time.timeScale = isOn ? 2.0f : 1.0f;
     }
     
     public void OnPauseButton()
@@ -52,7 +53,12 @@ public class UIButtonController : MonoBehaviour
     {
         PlayClickSound();
         Time.timeScale = 1.0f; 
-        isFastForward = false;
+
+        if (fastForwardToggle != null)
+        {
+            fastForwardToggle.isOn = false; 
+        }
+
         if (gameManager != null)
         {
             gameManager.RestartGame();
@@ -77,17 +83,5 @@ public class UIButtonController : MonoBehaviour
         if (uiController == null || gameManager == null) return;
         bool settingsWillBeActive = !uiController.settingsPanel.activeSelf;
         uiController.settingsPanel.SetActive(settingsWillBeActive);
-        if (gameManager.IsPaused)
-        {
-            gameManager.pausePanel.SetActive(!settingsWillBeActive);
-        }
-    }
-
-    public void OnMainMenuButton()
-    {
-        PlayClickSound();
-        Time.timeScale = 1.0f;
-        
-        SceneManager.LoadScene("MainMenu");
     }
 }

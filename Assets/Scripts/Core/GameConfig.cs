@@ -7,12 +7,15 @@ public class GameConfig : ScriptableObject
     [Tooltip("Initial seeds per hole (typical Congklak = 7)")]
     public int initialSeedsPerHole = 7;
 
+    [Header("Animation")]
     [Tooltip("Delay between each seeded drop when animating (seconds)")]
     public float animationSpeed = 0.1f;
+    public float fastForwardSpeedMultiplier = 1f;
+    public bool isFastForwardActive = false;
 
     [Header("Audio Settings")]
-    public float musicVolume = 0.7f;
-    public float sfxVolume = 0.8f;
+    public float musicVolume = 0.2f;
+    public float sfxVolume = 0.5f;
     public bool soundEnabled = true;
 
     [Header("AI & Mode")]

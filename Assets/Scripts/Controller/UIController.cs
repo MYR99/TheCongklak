@@ -42,6 +42,11 @@ public class UIController : MonoBehaviour
     public GameObject playerOneIndicator;
     public GameObject playerTwoIndicator;
 
+    [Header("Speed Controls")]
+    [SerializeField] private Button fastForwardButton;
+    [SerializeField] private Color fastForwardActiveColor = Color.red;
+    private Color fastForwardOriginalColor;
+
     private int lastP1Score = 0;
     private int lastP2Score = 0;
 
@@ -57,6 +62,10 @@ public class UIController : MonoBehaviour
         lastP2Score = 0;
 
         LoadSettingsFromConfig();
+        if (fastForwardButton != null)
+        {
+            fastForwardOriginalColor = fastForwardButton.image.color;
+        }
     }
 
     public void LoadSettingsFromConfig()
@@ -115,12 +124,12 @@ public class UIController : MonoBehaviour
             if (playerTwoScore != lastP2Score)
             {
                 playerTwoScoreTxt.text = playerTwoScore.ToString();
-                StopCoroutine(AnimateScoreText(playerTwoScoreTxt)); 
-                StartCoroutine(AnimateScoreText(playerTwoScoreTxt)); 
+                StopCoroutine(AnimateScoreText(playerTwoScoreTxt));
+                StartCoroutine(AnimateScoreText(playerTwoScoreTxt));
                 lastP2Score = playerTwoScore;
             }
         }
-        
+
         if (currentPlayerTxt != null) { currentPlayerTxt.text = $"Giliran Pemain {currentPlayer}"; currentPlayerTxt.color = (currentPlayer == 1) ? Color.cyan : Color.magenta; }
         if (playerOneIndicator != null) playerOneIndicator.SetActive(currentPlayer == 1);
         if (playerTwoIndicator != null) playerTwoIndicator.SetActive(currentPlayer == 2);
@@ -154,9 +163,20 @@ public class UIController : MonoBehaviour
     public void UpdateGameStatus(string message) { if (gameStatusTxt != null) { gameStatusTxt.text = message; } }
     public void UpdateSeedCount(Hole hole, int count) { if (hole != null && hole.seedText != null) { hole.seedText.text = count.ToString(); } }
     public void HideGameOver() { if (gameEndPanel != null) gameEndPanel.SetActive(false); }
-    
+
     public void OnMusicVolumeChanged(float value) { if (musicVolumeLabel != null) musicVolumeLabel.text = $"Music: {Mathf.RoundToInt(value * 100)}%"; if (config != null) config.musicVolume = value; if (AudioManager.Instance != null) AudioManager.Instance.SetMusicVolume(value); }
     public void OnSFXVolumeChanged(float value) { if (sfxVolumeLabel != null) sfxVolumeLabel.text = $"SFX: {Mathf.RoundToInt(value * 100)}%"; if (config != null) config.sfxVolume = value; if (AudioManager.Instance != null) AudioManager.Instance.SetSFXVolume(value); }
     public void OnSoundToggleChanged(bool isOn) { if (config != null) config.soundEnabled = isOn; if (AudioManager.Instance != null) AudioManager.Instance.ToggleSound(isOn); }
     public void OnDifficultyChanged(int value) { if (config != null) config.aiDifficulty = (AILevel)value; }
+    
+    /// <summary>
+    /// Mengubah warna tombol fast forward saat diaktifkan/dinonaktifkan
+    /// </summary>
+    public void ToggleFastForwardButtonColor(bool isActive)
+    {
+        if (fastForwardButton != null && fastForwardButton.image != null)
+        {
+            fastForwardButton.image.color = isActive ? fastForwardActiveColor : fastForwardOriginalColor;
+        }
+    }
 }

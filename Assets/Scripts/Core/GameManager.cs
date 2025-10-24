@@ -285,7 +285,7 @@ public class GameManager : MonoBehaviour
     {
         return GetNextHole(current);
     }
-    
+
     private Hole GetNextHole(Hole current)
     {
         if (current.GetHoleType() == HoleType.PlayerOne)
@@ -313,5 +313,16 @@ public class GameManager : MonoBehaviour
             return playerOneHoles[0];
         }
         return null;
+    }
+    
+    public void ToggleFastForward()
+    {
+        if (config == null) return;
+        config.isFastForwardActive = !config.isFastForwardActive;
+        
+        if (uiController != null)
+        {
+            uiController.ToggleFastForwardButtonColor(config.isFastForwardActive);
+        }
     }
 }
