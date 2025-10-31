@@ -25,6 +25,11 @@ public class UIController : MonoBehaviour
     public TMP_Text sfxVolumeLabel;
     public Toggle soundToggle;
     public TMP_Dropdown difficultyDropdown;
+    [SerializeField] private TMP_Dropdown languageDropdown;
+
+    [Header("Translated Text")]
+    [SerializeField] private TMP_Text settingsPanelTitle;
+    [SerializeField] private TMP_Text languageLabel;
 
     [Header("Game End UI")]
     public Image winnerImage;
@@ -45,8 +50,8 @@ public class UIController : MonoBehaviour
     [Header("Speed Controls")]
     [SerializeField] private Button fastForwardButton;
     [SerializeField] private Color fastForwardActiveColor = Color.red;
+    
     private Color fastForwardOriginalColor;
-
     private int lastP1Score = 0;
     private int lastP2Score = 0;
 
@@ -65,6 +70,51 @@ public class UIController : MonoBehaviour
         if (fastForwardButton != null)
         {
             fastForwardOriginalColor = fastForwardButton.image.color;
+        }
+
+        if (languageDropdown != null)
+        {
+            languageDropdown.value = (int)config.currentLanguage;
+            languageDropdown.onValueChanged.AddListener(OnLanguageChanged);
+        }
+        UpdateAllText();
+    }
+
+    public void OnLanguageChanged(int value)
+    {
+        if (config != null)
+        {
+            config.currentLanguage = (Language)value;
+        }
+        UpdateAllText();
+    }
+
+    public void UpdateAllText()
+    {
+        if (config == null) return;
+
+        bool isIndonesian = config.currentLanguage == Language.Indonesian;
+
+        // Terjemahkan panel pengaturan
+        if (settingsPanelTitle != null) settingsPanelTitle.text = isIndonesian ? "Pengaturan" : "Settings";
+        if (languageLabel != null) languageLabel.text = isIndonesian ? "Bahasa" : "Language";
+
+        // Perbarui teks slider
+        if (musicVolumeLabel != null)
+        {
+            string label = isIndonesian ? "Musik" : "Music";
+            musicVolumeLabel.text = $"{label}: {Mathf.RoundToInt(config.musicVolume * 100)}%";
+        }
+        if (sfxVolumeLabel != null)
+        {
+            string label = isIndonesian ? "SFX" : "SFX";
+            sfxVolumeLabel.text = $"{label}: {Mathf.RoundToInt(config.sfxVolume * 100)}%";
+        }
+
+        // Terjemahkan UI dalam game lainnya
+        if (pausePanelTurnText != null)
+        {
+            string turnLabel = isIndonesian ? "Giliran" : "Turn";
         }
     }
 
@@ -163,9 +213,8 @@ public class UIController : MonoBehaviour
     public void UpdateGameStatus(string message) { if (gameStatusTxt != null) { gameStatusTxt.text = message; } }
     public void UpdateSeedCount(Hole hole, int count) { if (hole != null && hole.seedText != null) { hole.seedText.text = count.ToString(); } }
     public void HideGameOver() { if (gameEndPanel != null) gameEndPanel.SetActive(false); }
-
-    public void OnMusicVolumeChanged(float value) { if (musicVolumeLabel != null) musicVolumeLabel.text = $"Music: {Mathf.RoundToInt(value * 100)}%"; if (config != null) config.musicVolume = value; if (AudioManager.Instance != null) AudioManager.Instance.SetMusicVolume(value); }
-    public void OnSFXVolumeChanged(float value) { if (sfxVolumeLabel != null) sfxVolumeLabel.text = $"SFX: {Mathf.RoundToInt(value * 100)}%"; if (config != null) config.sfxVolume = value; if (AudioManager.Instance != null) AudioManager.Instance.SetSFXVolume(value); }
+    public void OnMusicVolumeChanged(float value) { if (musicVolumeLabel != null) musicVolumeLabel.text = $"Music: {Mathf.RoundToInt(value * 100)}%"; if (config != null) config.musicVolume = value; if (AudioManager.Instance != null) AudioManager.Instance.SetMusicVolume(value); UpdateAllText(); }
+    public void OnSFXVolumeChanged(float value) { if (sfxVolumeLabel != null) sfxVolumeLabel.text = $"SFX: {Mathf.RoundToInt(value * 100)}%"; if (config != null) config.sfxVolume = value; if (AudioManager.Instance != null) AudioManager.Instance.SetSFXVolume(value); UpdateAllText(); }
     public void OnSoundToggleChanged(bool isOn) { if (config != null) config.soundEnabled = isOn; if (AudioManager.Instance != null) AudioManager.Instance.ToggleSound(isOn); }
     public void OnDifficultyChanged(int value) { if (config != null) config.aiDifficulty = (AILevel)value; }
     
@@ -174,9 +223,13 @@ public class UIController : MonoBehaviour
     /// </summary>
     public void ToggleFastForwardButtonColor(bool isActive)
     {
-        if (fastForwardButton != null && fastForwardButton.image != null)
+        if (fastForwardButton == null) return;
+
+        Image toggleImage = fastForwardButton.targetGraphic as Image;
+
+        if (toggleImage != null)
         {
-            fastForwardButton.image.color = isActive ? fastForwardActiveColor : fastForwardOriginalColor;
+            toggleImage.color = isActive ? fastForwardActiveColor : Color.white;
         }
     }
 }

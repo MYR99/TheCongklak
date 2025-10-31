@@ -7,7 +7,8 @@ public class UIButtonController : MonoBehaviour
     [Header("References")]
     [SerializeField] private GameManager gameManager;
     [SerializeField] private UIController uiController;
-    [SerializeField] private Toggle fastForwardToggle;
+
+    private bool isFastForwardActive = false;
 
     private void Awake()
     {
@@ -23,12 +24,21 @@ public class UIButtonController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// </summary>
-    public void OnFastForwardToggle(bool isOn)
+    public void OnFastForwardButtonPressed()
     {
         PlayClickSound();
-        Time.timeScale = isOn ? 2.0f : 1.0f;
+
+        isFastForwardActive = !isFastForwardActive;
+
+        if (gameManager != null)
+        {
+            gameManager.SetFastForward(isFastForwardActive);
+        }
+
+        if (uiController != null)
+        {
+            uiController.ToggleFastForwardButtonColor(isFastForwardActive);
+        }
     }
     
     public void OnPauseButton()
@@ -52,11 +62,12 @@ public class UIButtonController : MonoBehaviour
     public void OnRestartButton()
     {
         PlayClickSound();
-        Time.timeScale = 1.0f; 
+        Time.timeScale = 1.0f;
 
-        if (fastForwardToggle != null)
+        isFastForwardActive = false;
+        if (uiController != null)
         {
-            fastForwardToggle.isOn = false; 
+            uiController.ToggleFastForwardButtonColor(isFastForwardActive);
         }
 
         if (gameManager != null)
@@ -64,7 +75,7 @@ public class UIButtonController : MonoBehaviour
             gameManager.RestartGame();
         }
     }
-
+    
     public void OnExitButton()
     {
         PlayClickSound();

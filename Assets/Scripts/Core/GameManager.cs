@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class GameManager : MonoBehaviour
 {
@@ -22,7 +23,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] public GameConfig config; 
     [SerializeField] public GameObject pausePanel;
     [SerializeField] private bool sowDebugLogs = false;
-    [SerializeField] private AIController aiController; 
+    [SerializeField] private AIController aiController;
+
+    [Header("Tutorial")]
+    [SerializeField] private TutorialController tutorialController;
+    private bool isTutorialActive = false; 
 
     private int currentPlayer = 1;
     private bool isSowing = false;
@@ -38,6 +43,11 @@ public class GameManager : MonoBehaviour
     public int CurrentPlayer => currentPlayer;
     public bool IsGameActive => isGameActive;
 
+    public static event Action<Hole> OnTutorialSowContinue;
+    public static event Action<Hole> OnTutorialCapture;
+    public static event Action OnTutorialExtraTurn;
+    public static event Action OnTutorialTurnEnd;
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -49,13 +59,61 @@ public class GameManager : MonoBehaviour
         if (playerTwoStorehouse != null) { playerTwoStorehouse.SetHoleType(HoleType.Storehouse); playerTwoStorehouse.SetIndex(-1); }
     }
 
-    private void Start()
+   private void Start()
     {
-        if (aiController != null)
+        if (config == null)
         {
-            aiController.Initialize(this, playerTwoHoles, playerOneHoles, playerTwoStorehouse, playerOneStorehouse);
+            Debug.LogError("GameConfig belum di-assign di GameManager!");
+            return;
         }
-        RestartGame();
+
+        startingSeeds = config.initialSeedsPerHole;
+        //seedMoveSpeed = config.animationSpeed;
+
+        if (config.gameMode == GameMode.PlayerVsAI && !config.tutorialCompleted && tutorialController != null)
+        {
+            StartCoroutine(TutorialSequence());
+        }
+        else
+        {
+            isTutorialActive = false;
+            SetupBoard();
+            StartGame();
+        }
+    }
+
+    private IEnumerator TutorialSequence()
+    {
+        isTutorialActive = true;
+        isGameActive = false;
+        isAITurn = true;
+
+        SetupBoard();
+        yield return tutorialController.StartTutorialSequence();
+
+        isTutorialActive = false;
+        config.tutorialCompleted = true;
+        StartGame();
+    }
+    
+    private void StartGame()
+    {
+        isGameActive = true;
+        currentPlayer = 1;
+        UpdateTurnIndicators();
+        
+        if (config.gameMode == GameMode.PlayerVsAI)
+        {
+            if (aiController == null) aiController = FindObjectOfType<AIController>();
+            aiController.Initialize(this, playerTwoHoles, playerOneHoles, playerTwoStorehouse, playerOneStorehouse);
+            isAITurn = false;
+        }
+        
+        if (uiController != null)
+        {
+            uiController.UpdateScores(0, 0, currentPlayer);
+            uiController.UpdateGameStatus("Player 1's Turn");
+        }
     }
 
     private void Update()
@@ -123,6 +181,12 @@ public class GameManager : MonoBehaviour
             int seedCount = seedsToSow.Count;
             if (seedCount == 0) break;
 
+            if (isTutorialActive && currentHole != startHole)
+            {
+                OnTutorialSowContinue?.Invoke(currentHole);
+                yield return new WaitUntil(() => tutorialController.isReadyForNextStep);
+            }
+
             for (int i = 0; i < seedCount; i++)
             {
                 Hole previousHole = lastHole;
@@ -144,8 +208,14 @@ public class GameManager : MonoBehaviour
                     lastHole = GetNextHole(lastHole);
                 }
 
+                float currentMoveSpeed = seedMoveSpeed;
+                if (config != null && config.isFastForwardActive)
+                {
+                    currentMoveSpeed *= config.fastForwardSpeedMultiplier;
+                }
+
                 yield return StartCoroutine(lastHole.AnimateAddSeedCoroutine(
-                    seedsToSow[i], previousHole.GetSeedContainer(), liftHeight, seedMoveSpeed));
+                     seedsToSow[i], previousHole.GetSeedContainer(), liftHeight, currentMoveSpeed));
 
                 if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(AudioManager.Instance.seedDrop);
                 if (uiController != null) uiController.UpdateScores(playerOneStorehouse.GetSeedCount(), playerTwoStorehouse.GetSeedCount(), currentPlayer);
@@ -157,7 +227,7 @@ public class GameManager : MonoBehaviour
             {
                 if (currentPlayer == 1) p1ExtraTurns++;
                 else p2ExtraTurns++;
-                
+
                 if (uiController != null) uiController.UpdateGameStatus("Giliran Tambahan!");
                 if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(AudioManager.Instance.extraTurn);
                 isSowing = false;
@@ -178,10 +248,13 @@ public class GameManager : MonoBehaviour
                 if (opposite != null && opposite.GetSeedCount() > 0)
                 {
                     int captured = opposite.ClearSeeds() + lastHole.ClearSeeds();
-                    
-                    if (currentPlayer == 1) {
+
+                    if (currentPlayer == 1)
+                    {
                         if (captured > p1MaxSeedsCaptured) p1MaxSeedsCaptured = captured;
-                    } else {
+                    }
+                    else
+                    {
                         if (captured > p2MaxSeedsCaptured) p2MaxSeedsCaptured = captured;
                     }
 
@@ -210,6 +283,41 @@ public class GameManager : MonoBehaviour
         {
             isAITurn = true;
             aiController.MakeMove(config.aiDifficulty);
+        }
+    }
+    
+    private void EndTurnSequence(Hole lastHole)
+    {
+        bool wasCapture = (lastHole.GetHoleType() == HoleType.PlayerOne && currentPlayer == 1 && lastHole.GetSeedCount() == 1) ||
+                          (lastHole.GetHoleType() == HoleType.PlayerTwo && currentPlayer == 2 && lastHole.GetSeedCount() == 1);
+        bool isExtraTurn = (currentPlayer == 1 && lastHole == playerOneStorehouse) ||
+                           (currentPlayer == 2 && lastHole == playerTwoStorehouse);
+
+        if (isTutorialActive)
+        {
+            if (isExtraTurn)
+            {
+                OnTutorialExtraTurn?.Invoke();
+            }
+            else if (wasCapture)
+            {
+                // HandleCapture(lastHole);
+                OnTutorialCapture?.Invoke(lastHole);
+            }
+            else
+            {
+                OnTutorialTurnEnd?.Invoke();
+            }
+            return;
+        }
+
+        if (isExtraTurn)
+        {
+
+        }
+        else if (wasCapture)
+        {
+
         }
     }
     
@@ -314,15 +422,21 @@ public class GameManager : MonoBehaviour
         }
         return null;
     }
-    
-    public void ToggleFastForward()
+
+    public void SetFastForward(bool isOn)
     {
         if (config == null) return;
-        config.isFastForwardActive = !config.isFastForwardActive;
-        
+
+        config.isFastForwardActive = isOn;
+
         if (uiController != null)
         {
-            uiController.ToggleFastForwardButtonColor(config.isFastForwardActive);
+            uiController.ToggleFastForwardButtonColor(isOn);
         }
+    }
+
+    public void SetGameActive(bool isActive)
+    {
+        isGameActive = isActive;
     }
 }

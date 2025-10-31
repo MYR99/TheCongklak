@@ -10,18 +10,27 @@ public class GameConfig : ScriptableObject
     [Header("Animation")]
     [Tooltip("Delay between each seeded drop when animating (seconds)")]
     public float animationSpeed = 0.1f;
-    public float fastForwardSpeedMultiplier = 1f;
+    public float fastForwardSpeedMultiplier = 5f;
     public bool isFastForwardActive = false;
 
     [Header("Audio Settings")]
-    public float musicVolume = 0.2f;
+    public float musicVolume = 0.1f;
     public float sfxVolume = 0.5f;
     public bool soundEnabled = true;
 
     [Header("AI & Mode")]
     public AILevel aiDifficulty = AILevel.Medium;
     public GameMode gameMode = GameMode.PlayerVsPlayer;
+
+    [Header("Tutorial")]
+    [Tooltip("Set ke true jika tutorial PvE sudah selesai")]
+    public bool tutorialCompleted = false;
+
+    [Header("Localization")]
+    [Tooltip("Bahasa yang sedang digunakan")]
+    public Language currentLanguage = Language.Indonesian; // Default: Indonesia
 }
 
 public enum AILevel { Easy, Medium, Hard }
 public enum GameMode { PlayerVsPlayer, PlayerVsAI }
+public enum Language { Indonesian, English }

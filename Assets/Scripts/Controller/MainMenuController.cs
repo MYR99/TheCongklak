@@ -21,6 +21,14 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private Slider sfxVolumeSlider;
     [SerializeField] private TMP_Text sfxVolumeLabel;
     [SerializeField] private Toggle soundToggle;
+    [SerializeField] private TMP_Dropdown languageDropdown;
+
+    [Header("Menu Text References")]
+    [SerializeField] private TMP_Text playButtonText;
+    [SerializeField] private TMP_Text settingsButtonText;
+    [SerializeField] private TMP_Text quitButtonText;
+    [SerializeField] private TMP_Text settingsPanelTitle;
+    [SerializeField] private TMP_Text languageLabel;
 
     private void Start()
     {
@@ -139,25 +147,75 @@ public class MainMenuController : MonoBehaviour
         OnMusicVolumeChanged(gameConfig.musicVolume);
         OnSFXVolumeChanged(gameConfig.sfxVolume);
         OnSoundToggleChanged(gameConfig.soundEnabled);
+
+        if (languageDropdown != null)
+        {
+            languageDropdown.value = (int)gameConfig.currentLanguage;
+            languageDropdown.onValueChanged.AddListener(OnLanguageChanged);
+        }
+        
+        UpdateLanguageUI();
     }
 
     public void OnMusicVolumeChanged(float value)
     {
         if (gameConfig != null) gameConfig.musicVolume = value;
-        if (musicVolumeLabel != null) musicVolumeLabel.text = $"Music: {Mathf.RoundToInt(value * 100)}%";
         if (AudioManager.Instance != null) AudioManager.Instance.SetMusicVolume(value);
+        UpdateLanguageUI();
     }
 
     public void OnSFXVolumeChanged(float value)
     {
         if (gameConfig != null) gameConfig.sfxVolume = value;
-        if (sfxVolumeLabel != null) sfxVolumeLabel.text = $"SFX: {Mathf.RoundToInt(value * 100)}%";
         if (AudioManager.Instance != null) AudioManager.Instance.SetSFXVolume(value);
+        UpdateLanguageUI();
     }
 
     public void OnSoundToggleChanged(bool isOn)
     {
         if (gameConfig != null) gameConfig.soundEnabled = isOn;
         if (AudioManager.Instance != null) AudioManager.Instance.ToggleSound(isOn);
+    }
+
+    /// <summary>
+    ///
+    /// </summary>
+    public void OnLanguageChanged(int value)
+    {
+        if (gameConfig != null)
+        {
+            gameConfig.currentLanguage = (Language)value;
+        }
+        PlayClickSound();
+        UpdateLanguageUI();
+    }
+
+    /// <summary>
+    /// Menerjemahkan semua teks di Main Menu
+    /// </summary>
+    private void UpdateLanguageUI()
+    {
+        if (gameConfig == null) return;
+
+        bool isIndonesian = gameConfig.currentLanguage == Language.Indonesian;
+
+        // Terjemahkan semua teks
+        if (playButtonText != null) playButtonText.text = isIndonesian ? "MAIN" : "PLAY";
+        if (settingsButtonText != null) settingsButtonText.text = isIndonesian ? "PENGATURAN" : "SETTINGS";
+        if (quitButtonText != null) quitButtonText.text = isIndonesian ? "KELUAR" : "QUIT";
+        if (settingsPanelTitle != null) settingsPanelTitle.text = isIndonesian ? "Pengaturan" : "Settings";
+        if (languageLabel != null) languageLabel.text = isIndonesian ? "Bahasa" : "Language";
+
+        // Terjemahkan teks yang memiliki nilai (slider)
+        if (musicVolumeLabel != null)
+        {
+            string label = isIndonesian ? "Musik" : "Music";
+            musicVolumeLabel.text = $"{label}: {Mathf.RoundToInt(gameConfig.musicVolume * 100)}%";
+        }
+        if (sfxVolumeLabel != null)
+        {
+            string label = isIndonesian ? "SFX" : "SFX";
+            sfxVolumeLabel.text = $"{label}: {Mathf.RoundToInt(gameConfig.sfxVolume * 100)}%";
+        }
     }
 }
