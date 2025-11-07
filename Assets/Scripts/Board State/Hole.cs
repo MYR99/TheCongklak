@@ -33,13 +33,29 @@ public class Hole : MonoBehaviour
             seedContainer = container.transform;
         }
     }
-    
+
+    // ✅ Tambahkan deteksi klik (gunakan collider 3D, non-trigger)
+    private void OnMouseDown()
+    {
+        // Abaikan klik jika sedang ada UI di atas atau game pause
+        if (UnityEngine.EventSystems.EventSystem.current != null &&
+            UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+            return;
+
+        // Kirim klik ke GameManager
+        if (GameManager.Instance != null)
+        {
+            Debug.Log($"[Hole] Clicked on {name}");
+            GameManager.Instance.SelectHole(this);
+        }
+    }
+
     public void SetHoleType(HoleType type) => holeType = type;
     public HoleType GetHoleType() => holeType;
     public void SetIndex(int index) => holeIndex = index;
     public int GetHoleIndex() => holeIndex;
     public Transform GetSeedContainer() => seedContainer;
-    
+
     public void SetSeeds(int count)
     {
         ClearSeeds();
@@ -66,7 +82,7 @@ public class Hole : MonoBehaviour
         seeds.Add(seed);
         UpdateSeedText();
     }
-    
+
     public IEnumerator AnimateAddSeedCoroutine(GameObject seed, Transform startContainer, float liftHeight, float moveSpeed)
     {
         seed.transform.SetParent(this.seedContainer, true);
@@ -97,7 +113,7 @@ public class Hole : MonoBehaviour
         seeds.Add(seed);
         UpdateSeedText();
     }
-    
+
     public List<GameObject> TakeAllSeedObjects()
     {
         List<GameObject> taken = new List<GameObject>(seeds);
@@ -128,7 +144,7 @@ public class Hole : MonoBehaviour
             Random.Range(-0.1f, 0.1f)
         );
     }
-    
+
     private void UpdateSeedText()
     {
         if (seedText != null)
@@ -136,6 +152,7 @@ public class Hole : MonoBehaviour
             seedText.text = seeds.Count.ToString();
         }
     }
+
     public void SetTurnHighlight(bool state)
     {
         if (turnIndicatorHighlight != null)
