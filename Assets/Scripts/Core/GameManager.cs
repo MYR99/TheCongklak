@@ -8,10 +8,10 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
 
     [Header("Board References")]
-    [SerializeField] private Hole[] playerOneHoles; // P1_0 (kanan) -> P1_6 (kiri)
-    [SerializeField] private Hole[] playerTwoHoles; // P2_0 (kanan) -> P2_6 (kiri)
-    [SerializeField] private Hole playerOneStorehouse; // Kiri
-    [SerializeField] public Hole playerTwoStorehouse; // Kanan (dibuat public)
+    [SerializeField] private Hole[] playerOneHoles; 
+    [SerializeField] private Hole[] playerTwoHoles; 
+    [SerializeField] private Hole playerOneStorehouse; 
+    [SerializeField] public Hole playerTwoStorehouse; 
 
     [Header("Gameplay Settings")]
     [SerializeField] private int startingSeeds = 7;
@@ -24,166 +24,183 @@ public class GameManager : MonoBehaviour
     [SerializeField] public GameObject pausePanel;
     [SerializeField] private bool sowDebugLogs = false;
     [SerializeField] private AIController aiController;
-
-    [Header("Tutorial")]
-    [SerializeField] private TutorialController tutorialController;
-    private bool isTutorialActive = false; 
-    private Hole currentTutorialHole = null; // Lubang yang boleh diklik
-
-    // --- Tutorial Events ---
-    public static event Action<Hole> OnTutorialSowContinue;
-    public static event Action<Hole> OnTutorialCapture;
-    public static event Action OnTutorialExtraTurn;
-    public static event Action OnTutorialTurnEnd;
-    public static event Action<int, int> OnTutorialScoreUpdate;
-
-    // --- Game State ---
-    private int currentPlayer = 1;
-    private bool isSowing = false;
-    private bool isGameActive = true;
-    private bool isAITurn = false; 
-    private int p1ExtraTurns;
-    private int p2ExtraTurns;
-    private int p1MaxSeedsCaptured;
-    private int p2MaxSeedsCaptured;
-
+    
+    [Header("Game State")]
+    public int currentPlayer = 1;
+    public bool isGameActive = false;
+    public bool isSowing = false;
     public bool IsPaused { get; private set; } = false;
-    public int CurrentPlayer => currentPlayer;
-    public bool IsGameActive => isGameActive;
+    private bool isAITurn = false;
+    private int totalSowableHoles;
 
-    #region Unity Lifecycle
+    [Header("Stats (for Game End)")]
+    private int p1TotalMoves = 0;
+    private int p2TotalMoves = 0;
+    private int p1ExtraTurns = 0;
+    private int p2ExtraTurns = 0;
+    private int p1MaxSeedsCaptured = 0;
+    private int p2MaxSeedsCaptured = 0;
+    private float gameStartTime = 0f;
 
     private void Awake()
     {
-        if (Instance == null) { Instance = this; } 
-        else { Destroy(gameObject); }
-
-        if (pausePanel != null) pausePanel.SetActive(false);
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
     }
 
-    private void Start()
+    void Start()
     {
-        if (config == null)
-        {
-            Debug.LogError("GameConfig belum di-assign di GameManager!");
-            return;
-        }
+        if (config == null) { Debug.LogError("[GameManager] GameConfig belum di-assign!"); return; }
+        if (uiController == null) { Debug.LogError("[GameManager] UIController belum di-assign!"); return; }
 
         startingSeeds = config.initialSeedsPerHole;
+        InitializeBoard();
+        UpdateUI();
         
-        if (config.gameMode == GameMode.PlayerVsAI && !config.tutorialCompleted && tutorialController != null)
+        if (pausePanel != null) pausePanel.SetActive(false);
+        IsPaused = false;
+        Time.timeScale = 1f;
+        gameStartTime = Time.time;
+
+        if (config.gameMode == GameMode.PlayerVsAI && !config.hasSeenIntroTutorial)
         {
-            StartCoroutine(TutorialSequence());
+            StartIntroTutorial();
         }
         else
         {
-            isTutorialActive = false;
-            SetupBoard();
-            StartGame();
+            SetGameActive(true);
+            UpdateGameStatus("Game Dimulai", CurrentPlayer.PlayerOne);
         }
     }
 
-    #endregion
-
-    #region Game Flow
-
-    private IEnumerator TutorialSequence()
+    private void InitializeBoard()
     {
-        isTutorialActive = true;
-        isGameActive = false; // Blok input sampai tutorial menyuruh
-        isAITurn = true; // Blok AI
-        
-        SetupBoard(); // <-- MENGGUNAKAN LOGIKA ASLI (7 BIJI PER LUBANG)
-        yield return tutorialController.StartTutorialSequence(); 
-    }
-
-    private void StartGame()
-    {
-        isGameActive = true;
-        currentPlayer = 1;
-        UpdateTurnIndicators(); // Panggil fungsi yang sudah di-update
-        
-        if (config.gameMode == GameMode.PlayerVsAI)
+        if (aiController != null)
         {
-            if (aiController == null) aiController = FindObjectOfType<AIController>();
             aiController.Initialize(this, playerTwoHoles, playerOneHoles, playerTwoStorehouse, playerOneStorehouse);
-            isAITurn = false;
         }
+        totalSowableHoles = playerOneHoles.Length + playerTwoHoles.Length + 1; 
         
-        if (uiController != null)
-        {
-            uiController.UpdateScores(0, 0, currentPlayer);
-            uiController.UpdateGameStatus("Player 1's Turn");
-        }
+        foreach (Hole hole in playerOneHoles) hole.Initialize(startingSeeds, uiController);
+        foreach (Hole hole in playerTwoHoles) hole.Initialize(startingSeeds, uiController);
+        playerOneStorehouse.Initialize(0, uiController);
+        playerTwoStorehouse.Initialize(0, uiController);
+
+        currentPlayer = 1;
+        isGameActive = false; 
+        isSowing = false;
+        isAITurn = false;
+
+        p1TotalMoves = 0; p2TotalMoves = 0; p1ExtraTurns = 0; p2ExtraTurns = 0; p1MaxSeedsCaptured = 0; p2MaxSeedsCaptured = 0;
     }
 
     public void RestartGame()
     {
-        isSowing = false;
-        isGameActive = true;
-        isAITurn = false;
-        isTutorialActive = false; 
-        currentPlayer = 1;
+        InitializeBoard();
+        UpdateUI();
+        if (uiController != null) uiController.HideGameOver();
         
-        p1ExtraTurns = 0;
-        p2ExtraTurns = 0;
-        p1MaxSeedsCaptured = 0;
-        p2MaxSeedsCaptured = 0;
-
-        if (pausePanel != null)
+        gameStartTime = Time.time;
+        if (config.gameMode == GameMode.PlayerVsAI && !config.hasSeenIntroTutorial)
         {
-            pausePanel.SetActive(false);
-            Time.timeScale = 1f;
-            IsPaused = false;
+            StartIntroTutorial();
         }
+        else
+        {
+            SetGameActive(true);
+            UpdateGameStatus("Game Dimulai", CurrentPlayer.PlayerOne);
+        }
+    }
+
+    private void UpdateUI()
+    {
+        if (uiController == null) return;
+        uiController.UpdateScores(playerOneStorehouse.GetSeedCount(), playerTwoStorehouse.GetSeedCount(), currentPlayer);
         
-        if (uiController != null)
+        if (currentPlayer == 1) UpdateGameStatus("Giliran Player 1", CurrentPlayer.PlayerOne);
+        else UpdateGameStatus("Giliran Player 2", CurrentPlayer.PlayerTwo);
+    }
+
+    public void SelectHole(Hole hole)
+    {
+        if (isSowing || IsPaused) return;
+        
+        // Izinkan jika giliran AI walau gameActive false
+        if (!isGameActive && !isAITurn) return;
+
+        if (!IsValidMove(hole))
         {
-            uiController.HideGameOver();
+            if (sowDebugLogs) Debug.Log($"[SelectHole] Gerakan tidak valid: {hole.name}");
+            return;
         }
 
-        SetupBoard();
-        StartGame();
+        if (currentPlayer == 1) p1TotalMoves++; else p2TotalMoves++;
+        StartSowing(hole);
+    }
+
+    private void UpdateGameStatus(string message, CurrentPlayer player)
+    {
+        if (uiController == null) return;
+        int playerNum = (player == CurrentPlayer.PlayerOne) ? 1 : (player == CurrentPlayer.PlayerTwo ? 2 : 0);
+        uiController.UpdateGameStatus(message, playerNum);
     }
     
-    public void EndTutorial()
+    private void CheckGameOver()
     {
-        isTutorialActive = false;
-        config.tutorialCompleted = true; // Tandai selesai
-        currentTutorialHole = null; // Hapus paksaan lubang
-        RestartGame(); // Mulai ulang game
-    }
+        int p1Seeds = 0; foreach (var hole in playerOneHoles) p1Seeds += hole.GetSeedCount();
+        int p2Seeds = 0; foreach (var hole in playerTwoHoles) p2Seeds += hole.GetSeedCount();
 
-    public void SetupBoard()
-    {
-        // Menggunakan logika asli dari config (7 biji)
-        foreach (var hole in playerOneHoles) hole.SetSeeds(startingSeeds);
-        foreach (var hole in playerTwoHoles) hole.SetSeeds(startingSeeds);
-        playerOneStorehouse.ClearSeeds();
-        playerTwoStorehouse.ClearSeeds();
+        if (p1Seeds == 0 || p2Seeds == 0)
+        {
+            Debug.Log("[GameManager] Game Over! Salah satu sisi kosong.");
+            isGameActive = false;
+            
+            int p1Remaining = p1Seeds;
+            foreach (var hole in playerOneHoles) p1Remaining += hole.ClearSeeds(); 
+            
+            int p2Remaining = p2Seeds;
+            foreach (var hole in playerTwoHoles) p2Remaining += hole.ClearSeeds();
+            
+            if (p1Remaining > 0) playerOneStorehouse.AddSeeds(p1Remaining);
+            if (p2Remaining > 0) playerTwoStorehouse.AddSeeds(p2Remaining);
+
+            if (uiController != null) uiController.UpdateScores(playerOneStorehouse.GetSeedCount(), playerTwoStorehouse.GetSeedCount(), 0);
+
+            int p1Final = playerOneStorehouse.GetSeedCount();
+            int p2Final = playerTwoStorehouse.GetSeedCount();
+            string winner = (p1Final > p2Final) ? "P1" : ((p2Final > p1Final) ? "P2" : "DRAW");
+
+            if (AudioManager.Instance != null)
+            {
+                if (winner == "P1") AudioManager.Instance.PlaySFX(AudioManager.Instance.gameWin);
+                else AudioManager.Instance.PlaySFX(AudioManager.Instance.gameLose);
+            }
+
+            float duration = Time.time - gameStartTime;
+            string stats = $"Duration: {Mathf.FloorToInt(duration / 60)}m {Mathf.FloorToInt(duration % 60)}s\n" +
+                           $"Extra Turns: P1 ({p1ExtraTurns}) - P2 ({p2ExtraTurns})\n" +
+                           $"Max Capture: P1 ({p1MaxSeedsCaptured}) - P2 ({p2MaxSeedsCaptured})";
+
+            if (uiController != null) uiController.ShowGameOver(winner, p1Final, p2Final, stats);
+        }
     }
 
     private void SwitchPlayer()
     {
         currentPlayer = (currentPlayer == 1) ? 2 : 1;
-        UpdateTurnIndicators();
-
-        if (uiController != null) uiController.UpdateGameStatus($"Player {currentPlayer}'s Turn");
+        UpdateUI();
 
         if (config.gameMode == GameMode.PlayerVsAI && currentPlayer == 2)
         {
             isAITurn = true;
+            isGameActive = false;
             StartCoroutine(HandleAITurn());
-        }
-        else
-        {
-            isAITurn = false;
         }
     }
 
     private IEnumerator HandleAITurn()
     {
-        isGameActive = false; 
+        Debug.Log("[AI] Memulai giliran AI..."); 
         yield return new WaitForSeconds(1.0f); 
         
         if (aiController != null)
@@ -192,106 +209,16 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("AIController is not assigned!");
+            isAITurn = false; 
+            Debug.LogError("[GameManager] AIController tidak ditemukan!");
         }
     }
-
-    private void UpdateTurnIndicators()
-    {
-        // --- LOGIKA BARU UNTUK INDIKATOR TUTORIAL ---
-        if (isTutorialActive)
-        {
-            // Matikan semua indikator
-            foreach (var hole in playerOneHoles) hole.turnIndicatorHighlight.SetActive(false);
-            foreach (var hole in playerTwoHoles) hole.turnIndicatorHighlight.SetActive(false);
-            
-            // Nyalakan HANYA lubang yang disuruh
-            if (currentTutorialHole != null)
-            {
-                currentTutorialHole.turnIndicatorHighlight.SetActive(true);
-            }
-            return; // Hentikan di sini
-        }
-        // ---------------------------------------------
-        
-        // Logika normal (non-tutorial)
-        foreach (var hole in playerOneHoles) hole.turnIndicatorHighlight.SetActive(currentPlayer == 1);
-        foreach (var hole in playerTwoHoles) hole.turnIndicatorHighlight.SetActive(currentPlayer == 2);
-    }
-    
-    private void CheckGameOver()
-    {
-        bool p1SideEmpty = true;
-        foreach (var hole in playerOneHoles)
-        {
-            if (hole.GetSeedCount() > 0)
-            {
-                p1SideEmpty = false;
-                break;
-            }
-        }
-
-        bool p2SideEmpty = true;
-        foreach (var hole in playerTwoHoles)
-        {
-            if (hole.GetSeedCount() > 0)
-            {
-                p2SideEmpty = false;
-                break;
-            }
-        }
-
-        if (p1SideEmpty || p2SideEmpty)
-        {
-            isGameActive = false;
-            if (sowDebugLogs) Debug.Log("[GAME OVER] One side is empty.");
-            
-            // Perbaikan error kompilasi
-            int p1FinalScore = playerOneStorehouse.GetSeedCount();
-            int p2FinalScore = playerTwoStorehouse.GetSeedCount();
-            
-            if (p1SideEmpty)
-            {
-                int p2Sweep = 0;
-                foreach (var hole in playerTwoHoles) p2Sweep += hole.ClearSeeds();
-                p2FinalScore += p2Sweep; 
-            }
-            
-            if (p2SideEmpty)
-            {
-                int p1Sweep = 0;
-                foreach (var hole in playerOneHoles) p1Sweep += hole.ClearSeeds();
-                p1FinalScore += p1Sweep; 
-            }
-
-            if (uiController != null)
-            {
-                // Sesuai dengan UIController.cs Anda (ShowGameOver(bool, bool))
-                bool isDraw = p1FinalScore == p2FinalScore;
-                bool isWin = false; 
-
-                if (config.gameMode == GameMode.PlayerVsAI)
-                {
-                    isWin = p1FinalScore > p2FinalScore;
-                }
-                else 
-                {
-                    isWin = p1FinalScore > p2FinalScore;
-                }
-                
-                uiController.ShowGameOver(isWin, isDraw);
-            }
-        }
-    }
-    
-    #endregion
 
     #region Sowing Logic
-
+    
     public void StartSowing(Hole startHole)
     {
         if (isSowing) return;
-
         isSowing = true;
         isGameActive = false;
         if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(AudioManager.Instance.seedPickup);
@@ -303,151 +230,90 @@ public class GameManager : MonoBehaviour
         Hole currentHole = startHole;
         Hole lastHole = startHole;
 
-        while (currentHole != null)  // Changed from while(true)
+        while (currentHole != null)
         {
-            // Prevent sowing from storehouse (lumbung)
-            if (currentHole.GetHoleType() == HoleType.Storehouse)
-            {
-                if (sowDebugLogs) Debug.Log("[SOW] Prevent sowing from storehouse, breaking loop.");
-                break;
-            }
+            if (currentHole.GetHoleType() == HoleType.Storehouse) break;
 
             List<GameObject> seedsToSow = currentHole.TakeAllSeedObjects();
             int seedCount = seedsToSow.Count;
-
-            if (seedCount == 0)
-            {
-                if (sowDebugLogs) Debug.Log("[SOW] No seeds to sow, breaking loop.");
-                break;
-            }
-
-            if (isTutorialActive && currentHole != startHole)
-            {
-                OnTutorialSowContinue?.Invoke(currentHole);
-            }
+            if (seedCount == 0) break;
 
             for (int i = 0; i < seedCount; i++)
             {
                 Hole previousHole = lastHole;
                 lastHole = GetNextHole(previousHole);
 
-                if (lastHole == null)
-                {
-                    Debug.LogError("[SOW] Got null for next hole, breaking sowing sequence");
-                    break;
-                }
+                if (lastHole == null) { Debug.LogError("[SOW] Next hole is null!"); break; }
 
-                if (sowDebugLogs)
-                    Debug.Log($"[SOW] P{currentPlayer} sowing. Moving seed {i + 1}/{seedCount} from {previousHole.name} to {lastHole.name}");
-
-                // Always skip opponent's storehouse
                 if ((currentPlayer == 1 && lastHole == playerTwoStorehouse) ||
                     (currentPlayer == 2 && lastHole == playerOneStorehouse))
                 {
-                    if (sowDebugLogs) Debug.Log($"[SOW] P{currentPlayer} skipping opponent storehouse {lastHole.name}");
                     lastHole = GetNextHole(lastHole);
                 }
 
-                if (lastHole == null)
-                {
-                    Debug.LogError("[SOW] Got null after skipping storehouse, breaking sowing sequence");
-                    break;
-                }
-
-                float currentMoveSpeed = seedMoveSpeed;
-                if (config != null && config.isFastForwardActive)
-                    currentMoveSpeed *= config.fastForwardSpeedMultiplier;
+                float currentMoveSpeed = seedMoveSpeed; 
+                if (config != null && config.isFastForwardActive) currentMoveSpeed *= config.fastForwardSpeedMultiplier;
 
                 yield return StartCoroutine(lastHole.AnimateAddSeedCoroutine(
                     seedsToSow[i], previousHole.GetSeedContainer(), liftHeight, currentMoveSpeed));
 
                 if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(AudioManager.Instance.seedDrop);
-
-                if (isTutorialActive)
-                {
-                    if (lastHole == playerOneStorehouse)
-                        OnTutorialScoreUpdate?.Invoke(playerOneStorehouse.GetSeedCount(), playerTwoStorehouse.GetSeedCount());
-                }
-
                 if (uiController != null) uiController.UpdateScores(playerOneStorehouse.GetSeedCount(), playerTwoStorehouse.GetSeedCount(), currentPlayer);
             }
 
             if (lastHole == null) break;
 
-            // Determine if we should continue sowing
             if (lastHole.GetHoleType() == HoleType.Storehouse)
             {
-                if (sowDebugLogs) Debug.Log($"[SOW] Landed in storehouse {lastHole.name}, ending sowing.");
-                currentHole = null; // End turn or extra turn
+                currentHole = null; 
             }
             else if (lastHole.GetSeedCount() == 1)
             {
-                if (sowDebugLogs) Debug.Log($"[SOW] Landed in empty hole {lastHole.name}, ending sowing.");
-                currentHole = null; // End turn or capture
+                currentHole = null; 
             }
-            else // Landed in a hole with seeds
+            else 
             {
-                if (sowDebugLogs) Debug.Log($"[SOW] Landed in non-empty hole {lastHole.name} ({lastHole.GetSeedCount()} seeds), continuing sowing.");
-                currentHole = lastHole; // Continue sowing from this hole
+                if (config.gameMode == GameMode.PlayerVsAI && !config.hasSeenSowContinueTip && lastHole.GetHoleType() != HoleType.Storehouse)
+                {
+                    config.hasSeenSowContinueTip = true; 
+                    PauseForTutorial(TutorialType.SowContinue); 
+                    yield return new WaitUntil(() => !IsPaused); 
+                }
+                currentHole = lastHole; 
             }
-        }
-
-        if (lastHole != null)
-        {
-            EndTurnSequence(lastHole);
         }
 
         isSowing = false;
 
-        if (!isTutorialActive)
+        if (lastHole != null)
         {
-            CheckGameOver();
-            if (!isAITurn) isGameActive = true;
-        }
-    }
-    
-    private void EndTurnSequence(Hole lastHole)
-    {
-        // --- PERBAIKAN LOGIKA 'NEMBAK' ---
-        bool wasCapture = false;
-        // Cek 'nembak' HANYA jika mendarat di lubang (bukan lumbung) dan bijinya cuma 1
-        if (lastHole.GetHoleType() != HoleType.Storehouse && lastHole.GetSeedCount() == 1)
-        {
-            Hole oppositeHole = GetOppositeHole(lastHole);
-            if (oppositeHole != null && oppositeHole.GetSeedCount() > 0) // Cek lubang seberang ADA ISI
+            bool wasCapture = false;
+            if (lastHole.GetHoleType() != HoleType.Storehouse && lastHole.GetSeedCount() == 1)
             {
-                // Cek apakah lubang ini milik pemain saat ini
-                wasCapture = (lastHole.GetHoleType() == HoleType.PlayerOne && currentPlayer == 1) ||
-                             (lastHole.GetHoleType() == HoleType.PlayerTwo && currentPlayer == 2);
+                Hole oppositeHole = GetOppositeHole(lastHole);
+                if (oppositeHole != null && oppositeHole.GetSeedCount() > 0) 
+                {
+                    if ((lastHole.GetHoleType() == HoleType.PlayerOne && currentPlayer == 1) ||
+                        (lastHole.GetHoleType() == HoleType.PlayerTwo && currentPlayer == 2))
+                    {
+                        wasCapture = true;
+                    }
+                }
             }
-        }
-        // ----------------------------------
-        
-        bool isExtraTurn = (currentPlayer == 1 && lastHole == playerOneStorehouse) ||
-                           (currentPlayer == 2 && lastHole == playerTwoStorehouse);
 
-        if (isTutorialActive)
-        {
+            bool isExtraTurn = (currentPlayer == 1 && lastHole == playerOneStorehouse) ||
+                               (currentPlayer == 2 && lastHole == playerTwoStorehouse);
+
             if (isExtraTurn)
             {
-                OnTutorialExtraTurn?.Invoke();
-            }
-            else if (wasCapture)
-            {
-                HandleCapture(lastHole); 
-                OnTutorialCapture?.Invoke(lastHole); 
-            }
-            else
-            {
-                OnTutorialTurnEnd?.Invoke();
-            }
-        }
-        else
-        {
-            if (isExtraTurn)
-            {
-                if (sowDebugLogs) Debug.Log($"[SOW] P{currentPlayer} landed in storehouse. Extra turn!");
-                if (uiController != null) uiController.UpdateGameStatus($"Player {currentPlayer} gets an extra turn!");
+                if (config.gameMode == GameMode.PlayerVsAI && !config.hasSeenExtraTurnTip)
+                {
+                    config.hasSeenExtraTurnTip = true;
+                    PauseForTutorial(TutorialType.ExtraTurn);
+                    yield return new WaitUntil(() => !IsPaused);
+                }
+                
+                if (uiController != null) uiController.UpdateGameStatus($"Player {currentPlayer} gets an extra turn!", currentPlayer);
                 if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(AudioManager.Instance.extraTurn);
                 
                 p1ExtraTurns += (currentPlayer == 1) ? 1 : 0;
@@ -458,10 +324,21 @@ public class GameManager : MonoBehaviour
                     isAITurn = true;
                     StartCoroutine(HandleAITurn());
                 }
+                else
+                {
+                    isGameActive = true; 
+                }
             }
             else if (wasCapture)
             {
-                HandleCapture(lastHole);
+                if (config.gameMode == GameMode.PlayerVsAI && !config.hasSeenCaptureTip)
+                {
+                    config.hasSeenCaptureTip = true;
+                    PauseForTutorial(TutorialType.Capture);
+                    yield return new WaitUntil(() => !IsPaused);
+                }
+                
+                yield return StartCoroutine(HandleCaptureRoutine(lastHole)); 
                 SwitchPlayer(); 
             }
             else
@@ -469,195 +346,180 @@ public class GameManager : MonoBehaviour
                 SwitchPlayer();
             }
         }
+
+        CheckGameOver(); 
+        
+        if (!isAITurn && !IsPaused && currentPlayer == 1) 
+        {
+            isGameActive = true; 
+        }
     }
 
-    private void HandleCapture(Hole lastHole)
+    private IEnumerator HandleCaptureRoutine(Hole lastHole)
     {
         Hole oppositeHole = GetOppositeHole(lastHole);
-        if (oppositeHole == null || oppositeHole.GetSeedCount() == 0) return;
-
-        if (sowDebugLogs) Debug.Log($"[SOW] P{currentPlayer} CAPTURED hole {oppositeHole.name}");
-
-        int capturedSeeds = oppositeHole.ClearSeeds();
-        int capturingSeed = lastHole.ClearSeeds();
         
-        int totalCaptured = capturedSeeds + capturingSeed;
+        if (oppositeHole == null || oppositeHole.GetSeedCount() == 0) 
+        {
+            yield break; 
+        }
+
+        Debug.Log($"[SOW] P{currentPlayer} MENEMBAK! Dari {lastHole.name} mengambil {oppositeHole.name}");
+
+        List<GameObject> capturedSeeds = oppositeHole.TakeAllSeedObjects();
+        List<GameObject> capturingSeeds = lastHole.TakeAllSeedObjects(); 
+        
+        int totalCaptured = capturedSeeds.Count + capturingSeeds.Count;
+        
         if (currentPlayer == 1) p1MaxSeedsCaptured = Mathf.Max(p1MaxSeedsCaptured, totalCaptured);
         else p2MaxSeedsCaptured = Mathf.Max(p2MaxSeedsCaptured, totalCaptured);
 
+        if (uiController != null)
+        {
+            int p1Current = playerOneStorehouse.GetSeedCount();
+            int p2Current = playerTwoStorehouse.GetSeedCount();
+            if (currentPlayer == 1) p1Current += totalCaptured; else p2Current += totalCaptured;
+            uiController.UpdateScores(p1Current, p2Current, currentPlayer);
+        }
+
         Hole targetStorehouse = (currentPlayer == 1) ? playerOneStorehouse : playerTwoStorehouse;
 
-        for (int i = 0; i < totalCaptured; i++)
-        {
-            GameObject seed = SeedPool.Instance.GetSeed();
-            StartCoroutine(targetStorehouse.AnimateAddSeedCoroutine(seed, targetStorehouse.GetSeedContainer(), liftHeight, seedMoveSpeed * 2));
-        }
+        float currentMoveSpeed = seedMoveSpeed * 2;
+        if (config != null && config.isFastForwardActive) currentMoveSpeed *= config.fastForwardSpeedMultiplier;
+
+        foreach (var seed in capturedSeeds)
+            StartCoroutine(targetStorehouse.AnimateAddSeedCoroutine(seed, oppositeHole.GetSeedContainer(), liftHeight, currentMoveSpeed));
+        foreach (var seed in capturingSeeds)
+            StartCoroutine(targetStorehouse.AnimateAddSeedCoroutine(seed, lastHole.GetSeedContainer(), liftHeight, currentMoveSpeed));
         
         if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(AudioManager.Instance.seedCapture);
-        if (uiController != null) uiController.UpdateScores(playerOneStorehouse.GetSeedCount(), playerTwoStorehouse.GetSeedCount(), currentPlayer);
+
+        float dist = Vector3.Distance(oppositeHole.transform.position, targetStorehouse.transform.position);
+        float waitTime = (dist / currentMoveSpeed) + 0.5f; 
+        
+        yield return new WaitForSeconds(waitTime);
     }
     
     #endregion
 
-    #region Helper Functions
+    #region Helper & Public Methods
     
-    // Dipanggil oleh PlayerInputController
-    public void SelectHole(Hole hole)
+    private Hole GetOppositeHole(Hole hole)
     {
-        if (hole == null) return;
-        if (!IsValidMove(hole))
+        if (hole.GetHoleType() == HoleType.PlayerOne)
         {
-            if (sowDebugLogs) Debug.Log($"SelectHole: invalid move attempted on {hole.name}");
-            return;
+            int index = hole.GetHoleIndex(); 
+            int oppositeIndex = (playerTwoHoles.Length - 1) - index; 
+            if (oppositeIndex >= 0 && oppositeIndex < playerTwoHoles.Length)
+                return playerTwoHoles[oppositeIndex];
         }
-        StartSowing(hole);
-    }
-
-    // Dipanggil oleh HoleHighlight
-    public bool IsValidMove(Hole hole)
-    {
-        if (hole == null || !isGameActive || isSowing || IsPaused || hole.GetSeedCount() == 0)
-            return false;
-
-        if (currentPlayer == 1 && hole.GetHoleType() != HoleType.PlayerOne) return false;
-        if (currentPlayer == 2 && hole.GetHoleType() != HoleType.PlayerTwo) return false;
-        if (config.gameMode == GameMode.PlayerVsAI && currentPlayer == 2) return false;
-
-        // --- LOGIKA BARU UNTUK TUTORIAL ---
-        if (isTutorialActive)
+        else if (hole.GetHoleType() == HoleType.PlayerTwo)
         {
-            if (currentTutorialHole != null && hole != currentTutorialHole)
-            {
-                return false; // Jika tutorial aktif & menunggu lubang, hanya izinkan lubang itu
-            }
-            if (currentTutorialHole == null && !isSowing)
-            {
-                return false; // Jika tutorial aktif & tidak menunggu lubang (misal: panel teks muncul), blok semua
-            }
-        }
-        // ----------------------------------
-
-        return true;
-    }
-
-    public Hole GetOppositeHole(Hole hole)
-    {
-        try
-        {
-            if (hole.GetHoleType() == HoleType.PlayerOne)
-            {
-                // P1_0 (idx 0) -> P2_0 (idx 0) (Logika lurus)
-                return playerTwoHoles[hole.GetHoleIndex()]; 
-            }
-            else if (hole.GetHoleType() == HoleType.PlayerTwo)
-            {
-                return playerOneHoles[hole.GetHoleIndex()];
-            }
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"[GetOppositeHole] Error: {e.Message}. Hole: {hole.name}, Index: {hole.GetHoleIndex()}");
+            int index = hole.GetHoleIndex(); 
+            int oppositeIndex = (playerOneHoles.Length - 1) - index; 
+            if (oppositeIndex >= 0 && oppositeIndex < playerOneHoles.Length)
+                return playerOneHoles[oppositeIndex];
         }
         return null;
-    }
-
-    public Hole GetNextHolePublic(Hole current)
-    {
-        return GetNextHole(current);
     }
 
     private Hole GetNextHole(Hole current)
     {
         try
         {
-            if (current.GetHoleType() == HoleType.PlayerOne)
+            int index = current.GetHoleIndex();
+            HoleType type = current.GetHoleType();
+
+            if (type == HoleType.PlayerOne)
             {
-                int idx = current.GetHoleIndex();
-                if (idx < playerOneHoles.Length - 1) // index 0-5
-                {
-                    return playerOneHoles[idx + 1]; // return 1-6
-                }
-                else // index 6
-                {
-                    return playerOneStorehouse; // return lumbung
-                }
+                if (index < playerOneHoles.Length - 1) return playerOneHoles[index + 1]; 
+                return playerOneStorehouse; 
             }
-            else if (current == playerOneStorehouse)
-            {
-                return playerTwoHoles[0]; // Dari lumbung P1, lanjut ke P2
-            }
-            else if (current.GetHoleType() == HoleType.PlayerTwo)
-            {
-                int idx = current.GetHoleIndex();
-                if (idx < playerTwoHoles.Length - 1) // index 0-5
-                {
-                    return playerTwoHoles[idx + 1]; // return 1-6
-                }
-                else // index 6
-                {
-                    return playerTwoStorehouse; // return lumbung
-                }
-            }
-            else if (current == playerTwoStorehouse)
-            {
-                return playerOneHoles[0]; // Dari lumbung P2, kembali ke P1
-            }
+            if (type == HoleType.Storehouse && current == playerOneStorehouse) return playerTwoHoles[0]; 
             
-            Debug.LogError($"[GetNextHole] Unknown hole type or state: {current.name}");
+            if (type == HoleType.PlayerTwo)
+            {
+                if (index < playerTwoHoles.Length - 1) return playerTwoHoles[index + 1]; 
+                return playerTwoStorehouse; 
+            }
+            if (type == HoleType.Storehouse && current == playerTwoStorehouse) return playerOneHoles[0]; 
+            
             return null;
         }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"[GetNextHole] Error getting next hole: {e.Message} (Hole: {current.name})");
-            return null;
-        }
+        catch (System.Exception) { return null; }
     }
 
-    public void EndTurnAfterAI()
+    public Hole GetNextHolePublic(Hole current) { return GetNextHole(current); }
+
+    public bool IsValidMove(Hole hole)
     {
-        isAITurn = false;
-        isGameActive = true;
-        SwitchPlayer();
+        if (hole == null) return false;
+        
+        // Perbolehkan jika ini giliran AI ATAU jika game sedang aktif dan tidak sowing/paused
+        bool canInteract = (isGameActive || isAITurn) && !isSowing && !IsPaused;
+        if (!canInteract) return false;
+        
+        if (hole.GetSeedCount() == 0) return false;
+        
+        bool isP1Turn = currentPlayer == 1;
+        HoleType holeType = hole.GetHoleType();
+
+        if ((isP1Turn && holeType == HoleType.PlayerOne) ||
+            (!isP1Turn && holeType == HoleType.PlayerTwo && config.gameMode == GameMode.PlayerVsPlayer)) return true;
+        
+        if (!isP1Turn && holeType == HoleType.PlayerTwo && config.gameMode == GameMode.PlayerVsAI) return true;
+
+        return false;
     }
 
-    public void SetFastForward(bool isOn)
-    {
-        if (config == null) return;
-        config.isFastForwardActive = isOn;
-    }
+    public void EndTurnAfterAI() { isAITurn = false; isGameActive = true; }
+    public void SetFastForward(bool isOn) { if (config != null) config.isFastForwardActive = isOn; }
+    public void SetGameActive(bool isActive) { isGameActive = isActive; }
 
     public void TogglePause()
     {
+        if (IsPaused && Time.timeScale == 0f && (pausePanel == null || !pausePanel.activeSelf)) return;
         IsPaused = !IsPaused;
-        pausePanel.SetActive(IsPaused);
+        if(pausePanel != null) pausePanel.SetActive(IsPaused);
         
         if (IsPaused)
         {
             if (uiController != null) uiController.UpdatePausePanelInfo(playerOneStorehouse.GetSeedCount(), playerTwoStorehouse.GetSeedCount(), currentPlayer);
             Time.timeScale = 0f;
         }
-        else
-        {
-            Time.timeScale = 1f;
-        }
+        else Time.timeScale = 1f;
     }
-
-    public void SetGameActive(bool isActive)
-    {
-        isGameActive = isActive;
-    }
+    #endregion
     
-    // --- FUNGSI BARU UNTUK TUTORIAL ---
-    public void SetTutorialHole(Hole hole)
+    #region Tutorial System
+    private void StartIntroTutorial()
     {
-        currentTutorialHole = hole;
-        UpdateTurnIndicators(); // Perbarui lampu indikator
+        Debug.Log("[GameManager] Memulai Tutorial Pengenalan...");
+        SetGameActive(false); IsPaused = true; 
+        if (uiController != null) uiController.ShowIntroTutorial();
     }
-    
-    // Enum ini tidak lagi dipakai di sini
-    // public enum TutorialScenario 
-    // { ... }
-    // ----------------------------------
-
+    public void CompleteIntroTutorial()
+    {
+        if (config != null) config.hasSeenIntroTutorial = true;
+        if (uiController != null) uiController.HideIntroTutorial();
+        SetGameActive(true); IsPaused = false;
+        UpdateGameStatus("Giliran Anda", CurrentPlayer.PlayerOne);
+    }
+    public void PauseForTutorial(TutorialType type)
+    {
+        if (IsPaused) return; 
+        Debug.Log($"[GameManager] Pause untuk Tutorial: {type}");
+        IsPaused = true; Time.timeScale = 0f; 
+        if (uiController != null) uiController.ShowContextualTutorial(type);
+    }
+    public void ResumeFromTutorial()
+    {
+        Debug.Log("[GameManager] Melanjutkan game dari Tutorial.");
+        IsPaused = false; Time.timeScale = 1f; 
+        if (!isAITurn) isGameActive = true;
+    }
     #endregion
 }
+
+public enum CurrentPlayer { None, PlayerOne, PlayerTwo }
+public enum TutorialType { ExtraTurn, Capture, SowContinue }

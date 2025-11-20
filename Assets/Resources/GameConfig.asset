@@ -16,10 +16,13 @@ MonoBehaviour:
   animationSpeed: 0.01
   fastForwardSpeedMultiplier: 3
   isFastForwardActive: 0
-  musicVolume: 0.012419183
-  sfxVolume: 0.05
+  musicVolume: 0.010696575
+  sfxVolume: 0.12785356
   soundEnabled: 1
   aiDifficulty: 0
   gameMode: 1
-  tutorialCompleted: 0
+  hasSeenIntroTutorial: 0
+  hasSeenExtraTurnTip: 0
+  hasSeenCaptureTip: 0
+  hasSeenSowContinueTip: 0
   currentLanguage: 0

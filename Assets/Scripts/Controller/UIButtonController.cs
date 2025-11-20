@@ -7,6 +7,7 @@ public class UIButtonController : MonoBehaviour
     [Header("References")]
     [SerializeField] private GameManager gameManager;
     [SerializeField] private UIController uiController;
+    [SerializeField] private string mainMenuSceneName = "MainMenuScene"; // <-- TAMBAHAN: Masukkan nama scene Main Menu Anda di Inspector
 
     private bool isFastForwardActive = false;
 
@@ -74,6 +75,21 @@ public class UIButtonController : MonoBehaviour
         {
             gameManager.RestartGame();
         }
+    }
+
+    /// <summary>
+    /// FUNGSI BARU - Untuk kembali ke Main Menu
+    /// Dipanggil oleh tombol di Pause Menu atau Game Over Menu.
+    /// </summary>
+    public void OnMainMenuButton()
+    {
+        PlayClickSound();
+
+        // Pastikan game tidak lagi di-pause saat pindah scene
+        Time.timeScale = 1.0f;
+        
+        // Load scene Main Menu
+        SceneManager.LoadScene(mainMenuSceneName);
     }
     
     public void OnExitButton()

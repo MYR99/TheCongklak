@@ -30,7 +30,11 @@ public class UIController : MonoBehaviour
     [Header("Translated Text")]
     [SerializeField] private TMP_Text settingsPanelTitle;
     [SerializeField] private TMP_Text languageLabel;
-
+    [SerializeField] private TMP_Text musicLabel;
+    [SerializeField] private TMP_Text sfxLabel;
+    [SerializeField] private TMP_Text soundLabel;
+    [SerializeField] private TMP_Text difficultyLabel;
+    
     [Header("Game End UI")]
     public Image winnerImage;
     public Sprite winSprite;
@@ -46,190 +50,217 @@ public class UIController : MonoBehaviour
     [Header("Indicators")]
     public GameObject playerOneIndicator;
     public GameObject playerTwoIndicator;
+    public Toggle fastForwardButton; // Referensi untuk Toggle
 
-    [Header("Speed Controls")]
-    [SerializeField] private Button fastForwardButton;
-    [SerializeField] private Color fastForwardActiveColor = Color.red;
-    
-    private Color fastForwardOriginalColor;
-    private int lastP1Score = 0;
-    private int lastP2Score = 0;
+    [Header("Tutorial Panels")]
+    [Tooltip("Panel 'induk' yang berisi semua halaman tutorial pengenalan")]
+    public GameObject introTutorialPanelContainer; 
+    [Tooltip("Array dari setiap halaman/panel tutorial pengenalan, urutkan dari 0")]
+    public GameObject[] introTutorialPanels; 
+    [Space(10)]
+    [Tooltip("Panel 'induk' untuk tips kontekstual (Capture, Extra Turn)")]
+    public GameObject contextualTutorialPanel; 
+    [Tooltip("Teks Judul untuk panel kontekstual")]
+    public TMP_Text contextualTutorialTitle;
+    [Tooltip("Teks Isi/Body untuk panel kontekstual")]
+    public TMP_Text contextualTutorialBody;
+
+    private int currentIntroPanelIndex = 0;
+
 
     private void Start()
     {
-        if (settingsPanel != null) settingsPanel.SetActive(false);
-        if (gameEndPanel != null) gameEndPanel.SetActive(false);
-        if (gameStatusTxt != null) gameStatusTxt.text = "";
+        // Pastikan panel tutorial tersembunyi saat game dimulai
+        if (introTutorialPanelContainer != null) introTutorialPanelContainer.SetActive(false);
+        if (contextualTutorialPanel != null) contextualTutorialPanel.SetActive(false);
 
-        if (playerOneScoreTxt != null) playerOneScoreTxt.text = "0";
-        if (playerTwoScoreTxt != null) playerTwoScoreTxt.text = "0";
-        lastP1Score = 0;
-        lastP2Score = 0;
-
-        LoadSettingsFromConfig();
-        if (fastForwardButton != null)
-        {
-            fastForwardOriginalColor = fastForwardButton.image.color;
-        }
-
-        if (languageDropdown != null)
-        {
-            languageDropdown.value = (int)config.currentLanguage;
-            languageDropdown.onValueChanged.AddListener(OnLanguageChanged);
-        }
-        UpdateAllText();
+        // Panggil fungsi yang ada dari skrip Anda
+        LoadSettingsToUI();
     }
-
-    public void OnLanguageChanged(int value)
+    
+    public void UpdateScores(int p1Score, int p2Score, int currentPlayer)
     {
-        if (config != null)
-        {
-            config.currentLanguage = (Language)value;
-        }
-        UpdateAllText();
-    }
-
-    public void UpdateAllText()
-    {
-        if (config == null) return;
-
-        bool isIndonesian = config.currentLanguage == Language.Indonesian;
-
-        // Terjemahkan panel pengaturan
-        if (settingsPanelTitle != null) settingsPanelTitle.text = isIndonesian ? "Pengaturan" : "Settings";
-        if (languageLabel != null) languageLabel.text = isIndonesian ? "Bahasa" : "Language";
-
-        // Perbarui teks slider
-        if (musicVolumeLabel != null)
-        {
-            string label = isIndonesian ? "Musik" : "Music";
-            musicVolumeLabel.text = $"{label}: {Mathf.RoundToInt(config.musicVolume * 100)}%";
-        }
-        if (sfxVolumeLabel != null)
-        {
-            string label = isIndonesian ? "SFX" : "SFX";
-            sfxVolumeLabel.text = $"{label}: {Mathf.RoundToInt(config.sfxVolume * 100)}%";
-        }
-
-        // Terjemahkan UI dalam game lainnya
-        if (pausePanelTurnText != null)
-        {
-            string turnLabel = isIndonesian ? "Giliran" : "Turn";
-        }
-    }
-
-    public void LoadSettingsFromConfig()
-    {
-        if (config == null) return;
-        if (musicVolumeSlider != null) musicVolumeSlider.value = config.musicVolume;
-        if (sfxVolumeSlider != null) sfxVolumeSlider.value = config.sfxVolume;
-        if (soundToggle != null) soundToggle.isOn = config.soundEnabled;
-        if (difficultyDropdown != null) difficultyDropdown.value = (int)config.aiDifficulty;
-    }
-
-    public void ShowGameOver(bool playerOneWon, bool isDraw)
-    {
-        if (gameEndPanel == null) return;
-        gameEndPanel.SetActive(true);
-        if (isDraw)
-        {
-            winnerImage.sprite = drawSprite;
-        }
-        else
-        {
-            winnerImage.sprite = playerOneWon ? winSprite : loseSprite;
-        }
-    }
-
-    public void UpdateGameEndStats(int p1Score, int p2Score, int p1MaxCapture, int p2MaxCapture, int p1ExtraTurns, int p2ExtraTurns)
-    {
-        if (finalScoreText != null) finalScoreText.text = $"SKOR AKHIR\n{p1Score} - {p2Score}";
-        if (statsText != null)
-        {
-            statsText.text = $"P1 Max Capture: {p1MaxCapture}\nP2 Max Capture: {p2MaxCapture}\nP1 Extra Turns: {p1ExtraTurns}\nP2 Extra Turns: {p2ExtraTurns}";
-        }
-    }
-
-    public void UpdatePausePanelInfo(int p1Score, int p2Score, int playerTurn)
-    {
-        if (pausePanelScoreText != null) pausePanelScoreText.text = $"{p1Score} - {p2Score}";
-        if (pausePanelTurnText != null) pausePanelTurnText.text = $"Giliran Pemain: {playerTurn}";
-    }
-
-    public void UpdateScores(int playerOneScore, int playerTwoScore, int currentPlayer)
-    {
-        if (playerOneScoreTxt != null)
-        {
-            if (playerOneScore != lastP1Score)
-            {
-                playerOneScoreTxt.text = playerOneScore.ToString();
-                StopCoroutine(AnimateScoreText(playerOneScoreTxt));
-                StartCoroutine(AnimateScoreText(playerOneScoreTxt));
-                lastP1Score = playerOneScore;
-            }
-        }
-
-        if (playerTwoScoreTxt != null)
-        {
-            if (playerTwoScore != lastP2Score)
-            {
-                playerTwoScoreTxt.text = playerTwoScore.ToString();
-                StopCoroutine(AnimateScoreText(playerTwoScoreTxt));
-                StartCoroutine(AnimateScoreText(playerTwoScoreTxt));
-                lastP2Score = playerTwoScore;
-            }
-        }
-
-        if (currentPlayerTxt != null) { currentPlayerTxt.text = $"Giliran Pemain {currentPlayer}"; currentPlayerTxt.color = (currentPlayer == 1) ? Color.cyan : Color.magenta; }
+        if (playerOneScoreTxt != null) playerOneScoreTxt.text = p1Score.ToString();
+        if (playerTwoScoreTxt != null) playerTwoScoreTxt.text = p2Score.ToString();
+        
         if (playerOneIndicator != null) playerOneIndicator.SetActive(currentPlayer == 1);
         if (playerTwoIndicator != null) playerTwoIndicator.SetActive(currentPlayer == 2);
     }
 
-    private IEnumerator AnimateScoreText(TMP_Text scoreText)
+    public void UpdateGameStatus(string message, int player = 0)
     {
-        Vector3 originalScale = scoreText.transform.localScale;
-        Vector3 targetScale = originalScale * 1.3f;
-        float duration = 0.1f;
-
-        float timer = 0;
-        while (timer < duration)
+        if (gameStatusTxt != null) gameStatusTxt.text = message;
+        if (currentPlayerTxt != null)
         {
-            scoreText.transform.localScale = Vector3.Lerp(originalScale, targetScale, timer / duration);
-            timer += Time.deltaTime;
-            yield return null;
+            if (player == 1) currentPlayerTxt.text = (config.currentLanguage == Language.Indonesian) ? "Giliran Player 1" : "Player 1 Turn";
+            else if (player == 2) currentPlayerTxt.text = (config.currentLanguage == Language.Indonesian) ? "Giliran Player 2" : "Player 2 Turn";
+            else currentPlayerTxt.text = "";
         }
-        scoreText.transform.localScale = targetScale;
+    }
+    
+    public void ShowGameOver(string winner, int p1Score, int p2Score, string stats)
+    {
+        if (gameEndPanel == null) return;
+        gameEndPanel.SetActive(true);
 
-        timer = 0;
-        while (timer < duration)
+        if (finalScoreText != null) finalScoreText.text = $"{p1Score} - {p2Score}";
+        if (statsText != null) statsText.text = stats;
+
+        if (winnerImage != null)
         {
-            scoreText.transform.localScale = Vector3.Lerp(targetScale, originalScale, timer / duration);
-            timer += Time.deltaTime;
-            yield return null;
+            if (winner == "P1") winnerImage.sprite = winSprite;
+            else if (winner == "P2") winnerImage.sprite = loseSprite;
+            else winnerImage.sprite = drawSprite;
         }
-        scoreText.transform.localScale = originalScale;
+    }
+    
+    public void UpdatePausePanelInfo(int p1Score, int p2Score, int currentPlayer)
+    {
+        if (pausePanelScoreText != null) pausePanelScoreText.text = $"{p1Score} - {p2Score}";
+        bool isIndonesian = config.currentLanguage == Language.Indonesian;
+        if (pausePanelTurnText != null) pausePanelTurnText.text = (isIndonesian ? "Giliran: Player " : "Current Turn: Player ") + currentPlayer;
+    }
+    
+    private void LoadSettingsToUI()
+    {
+        if (config == null) return;
+
+        if (musicVolumeSlider != null) musicVolumeSlider.value = config.musicVolume;
+        if (sfxVolumeSlider != null) sfxVolumeSlider.value = config.sfxVolume;
+        if (soundToggle != null) soundToggle.isOn = config.soundEnabled;
+        if (difficultyDropdown != null) difficultyDropdown.value = (int)config.aiDifficulty;
+        if (languageDropdown != null) languageDropdown.value = (int)config.currentLanguage;
+
+        UpdateAllText(); 
+    }
+    
+    public void UpdateAllText()
+    {
+        if (config == null) return;
+        bool isIndonesian = config.currentLanguage == Language.Indonesian;
+
+        if (settingsPanelTitle != null) settingsPanelTitle.text = isIndonesian ? "Pengaturan" : "Settings";
+        if (languageLabel != null) languageLabel.text = isIndonesian ? "Bahasa" : "Language";
+
+        if (musicVolumeLabel != null) musicVolumeLabel.text = $"{(isIndonesian ? "Musik" : "Music")}: {Mathf.RoundToInt(config.musicVolume * 100)}%";
+        if (sfxVolumeLabel != null) sfxVolumeLabel.text = $"SFX: {Mathf.RoundToInt(config.sfxVolume * 100)}%";
+    }
+    
+    public void OnLanguageChanged(int value)
+    {
+        if (config != null) config.currentLanguage = (Language)value;
+        if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(AudioManager.Instance.buttonClick);
+        UpdateAllText();
     }
 
-    public void UpdateGameStatus(string message) { if (gameStatusTxt != null) { gameStatusTxt.text = message; } }
-    public void UpdateSeedCount(Hole hole, int count) { if (hole != null && hole.seedText != null) { hole.seedText.text = count.ToString(); } }
+    public void UpdateHoleSeedText(Hole hole, int count) { if (hole != null && hole.seedText != null) { hole.seedText.text = count.ToString(); } }
     public void HideGameOver() { if (gameEndPanel != null) gameEndPanel.SetActive(false); }
-    public void OnMusicVolumeChanged(float value) { if (musicVolumeLabel != null) musicVolumeLabel.text = $"Music: {Mathf.RoundToInt(value * 100)}%"; if (config != null) config.musicVolume = value; if (AudioManager.Instance != null) AudioManager.Instance.SetMusicVolume(value); UpdateAllText(); }
-    public void OnSFXVolumeChanged(float value) { if (sfxVolumeLabel != null) sfxVolumeLabel.text = $"SFX: {Mathf.RoundToInt(value * 100)}%"; if (config != null) config.sfxVolume = value; if (AudioManager.Instance != null) AudioManager.Instance.SetSFXVolume(value); UpdateAllText(); }
+    public void OnMusicVolumeChanged(float value) { if (musicVolumeLabel != null) musicVolumeLabel.text = $"{(config.currentLanguage == Language.Indonesian ? "Musik" : "Music")}: {Mathf.RoundToInt(value * 100)}%"; if (config != null) config.musicVolume = value; if (AudioManager.Instance != null) AudioManager.Instance.SetMusicVolume(value); }
+    public void OnSFXVolumeChanged(float value) { if (sfxVolumeLabel != null) sfxVolumeLabel.text = $"SFX: {Mathf.RoundToInt(value * 100)}%"; if (config != null) config.sfxVolume = value; if (AudioManager.Instance != null) AudioManager.Instance.SetSFXVolume(value); }
     public void OnSoundToggleChanged(bool isOn) { if (config != null) config.soundEnabled = isOn; if (AudioManager.Instance != null) AudioManager.Instance.ToggleSound(isOn); }
     public void OnDifficultyChanged(int value) { if (config != null) config.aiDifficulty = (AILevel)value; }
     
-    /// <summary>
-    /// Mengubah warna tombol fast forward saat diaktifkan/dinonaktifkan
-    /// </summary>
     public void ToggleFastForwardButtonColor(bool isActive)
     {
         if (fastForwardButton == null) return;
-
         Image toggleImage = fastForwardButton.targetGraphic as Image;
-
         if (toggleImage != null)
         {
-            toggleImage.color = isActive ? fastForwardActiveColor : Color.white;
+            toggleImage.color = isActive ? Color.green : Color.white; 
         }
+    }
+
+    /// <summary>
+    /// Dipanggil oleh GameManager untuk memulai tutorial pengenalan
+    /// </summary>
+    public void ShowIntroTutorial()
+    {
+        currentIntroPanelIndex = 0;
+        introTutorialPanelContainer.SetActive(true);
+        
+        // Tampilkan hanya panel pertama
+        for (int i = 0; i < introTutorialPanels.Length; i++)
+        {
+            introTutorialPanels[i].SetActive(i == 0);
+        }
+    }
+
+    /// <summary>
+    /// Dipanggil oleh tombol "Next" / "Lanjut" di panel tutorial pengenalan
+    /// </summary>
+    public void OnIntroTutorialNext()
+    {
+        // Sembunyikan panel saat ini
+        if (currentIntroPanelIndex < introTutorialPanels.Length)
+        {
+            introTutorialPanels[currentIntroPanelIndex].SetActive(false);
+        }
+
+        currentIntroPanelIndex++;
+
+        if (currentIntroPanelIndex < introTutorialPanels.Length)
+        {
+            // Tampilkan panel berikutnya
+            introTutorialPanels[currentIntroPanelIndex].SetActive(true);
+        }
+        else
+        {
+            // Selesai, beri tahu GameManager
+            GameManager.Instance.CompleteIntroTutorial();
+        }
+    }
+
+    /// <summary>
+    /// Dipanggil oleh GameManager saat panel terakhir ditutup
+    /// </summary>
+    public void HideIntroTutorial()
+    {
+        introTutorialPanelContainer.SetActive(false);
+    }
+
+    /// <summary>
+    /// Dipanggil oleh GameManager saat game di-pause untuk memberi tips
+    /// </summary>
+    public void ShowContextualTutorial(TutorialType type)
+    {
+        bool isIndonesian = (config != null && config.currentLanguage == Language.Indonesian);
+        string title = "";
+        string body = "";
+
+        switch (type)
+        {
+            case TutorialType.ExtraTurn:
+                title = isIndonesian ? "GILIRAN TAMBAHAN!" : "EXTRA TURN!";
+                body = isIndonesian ? 
+                    "Biji terakhir Anda mendarat di Lumbung (Storehouse). Anda dapat giliran bermain lagi!" : 
+                    "Your last seed landed in your Storehouse. You get an extra turn!";
+                break;
+            case TutorialType.Capture:
+                title = isIndonesian ? "MENEMBAK (CAPTURE)!" : "CAPTURE!";
+                body = isIndonesian ? 
+                    "Biji terakhir Anda mendarat di lubang kosong di sisi Anda. Anda mengambil semua biji di lubang seberang!" : 
+                    "Your last seed landed in an empty hole on your side. You capture all seeds in the opposite hole!";
+                break;
+            case TutorialType.SowContinue:
+                title = isIndonesian ? "LANJUT MENABUR" : "CONTINUE SOWING";
+                body = isIndonesian ? 
+                    "Biji terakhir mendarat di lubang yang ada isinya. Anda mengambil semua biji dan lanjut menabur." : 
+                    "The last seed landed in a hole with seeds. You pick up all seeds and continue sowing.";
+                break;
+        }
+
+        contextualTutorialTitle.text = title;
+        contextualTutorialBody.text = body;
+        contextualTutorialPanel.SetActive(true);
+    }
+
+    /// <summary>
+    /// Dipanggil oleh tombol "Close" / "Lanjut" di panel kontekstual
+    /// </summary>
+    public void HideContextualTutorial()
+    {
+        contextualTutorialPanel.SetActive(false);
+        // Beri tahu GameManager untuk melanjutkan game
+        GameManager.Instance.ResumeFromTutorial();
     }
 }

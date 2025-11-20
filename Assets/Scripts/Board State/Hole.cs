@@ -19,9 +19,12 @@ public class Hole : MonoBehaviour
     [Header("References")]
     [SerializeField] private Transform seedContainer;
     public TMP_Text seedText;
-    public GameObject turnIndicatorHighlight;
+    
+    [Tooltip("Masukkan Prefab/Objek Highlight (Kotak Kuning) di sini")]
+    public GameObject turnIndicatorHighlight; 
 
     private List<GameObject> seeds = new List<GameObject>();
+    private UIController uiController; 
 
     private void Awake()
     {
@@ -32,77 +35,99 @@ public class Hole : MonoBehaviour
             container.transform.localPosition = Vector3.zero;
             seedContainer = container.transform;
         }
+        
+        // Pastikan highlight mati saat game baru dimulai
+        if(turnIndicatorHighlight != null) turnIndicatorHighlight.SetActive(false);
     }
 
-    // ✅ Tambahkan deteksi klik (gunakan collider 3D, non-trigger)
+    // --- LOGIKA MOUSE HOVER (HIGHLIGHT) ---
+    private void OnMouseEnter()
+    {
+        // Cek apakah kita boleh memilih lubang ini?
+        if (GameManager.Instance != null && GameManager.Instance.IsValidMove(this))
+        {
+            // Jika valid, nyalakan highlight
+            if (turnIndicatorHighlight != null) turnIndicatorHighlight.SetActive(true);
+        }
+    }
+
+    private void OnMouseExit()
+    {
+        // Saat mouse pergi, matikan highlight
+        if (turnIndicatorHighlight != null) turnIndicatorHighlight.SetActive(false);
+    }
+    // --------------------------------------
+
+    public void Initialize(int startingSeedCount, UIController controller)
+    {
+        this.uiController = controller;
+        ClearSeeds();
+
+        if (holeType != HoleType.Storehouse)
+        {
+            for (int i = 0; i < startingSeedCount; i++)
+            {
+                GameObject seed = SeedPool.Instance.GetSeed();
+                seed.transform.SetParent(seedContainer);
+                seed.transform.localPosition = GetRandomSeedPosition();
+                seed.transform.localScale = Vector3.one * SeedPool.Instance.GetSeedScale(); // Fix scale
+                seeds.Add(seed);
+            }
+        }
+        UpdateSeedText();
+    }
+
     private void OnMouseDown()
     {
-        // Abaikan klik jika sedang ada UI di atas atau game pause
         if (UnityEngine.EventSystems.EventSystem.current != null &&
             UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
             return;
 
-        // Kirim klik ke GameManager
         if (GameManager.Instance != null)
         {
-            Debug.Log($"[Hole] Clicked on {name}");
+            // Matikan highlight setelah diklik agar tidak nyangkut
+            if (turnIndicatorHighlight != null) turnIndicatorHighlight.SetActive(false);
+            
             GameManager.Instance.SelectHole(this);
         }
     }
 
-    public void SetHoleType(HoleType type) => holeType = type;
-    public HoleType GetHoleType() => holeType;
-    public void SetIndex(int index) => holeIndex = index;
-    public int GetHoleIndex() => holeIndex;
-    public Transform GetSeedContainer() => seedContainer;
-
-    public void SetSeeds(int count)
+    public Transform GetSeedContainer()
     {
-        ClearSeeds();
-        for (int i = 0; i < count; i++)
-        {
-            AddSeedObject(SeedPool.Instance.GetSeed());
-        }
+        return seedContainer;
     }
 
-    public void AddSeeds(int count)
+    public HoleType GetHoleType()
     {
-        for (int i = 0; i < count; i++)
-        {
-            AddSeedObject(SeedPool.Instance.GetSeed());
-        }
+        return holeType;
     }
 
-    public void AddSeedObject(GameObject seed)
+    public int GetHoleIndex()
     {
-        if (seed == null) return;
+        return holeIndex;
+    }
+
+    public IEnumerator AnimateAddSeedCoroutine(GameObject seed, Transform fromTransform, float liftHeight, float moveSpeed)
+    {
         seed.transform.SetParent(seedContainer);
-        seed.transform.localPosition = GetRandomSeedPosition();
-        seed.transform.localScale = Vector3.one * SeedPool.Instance.GetSeedScale();
-        seeds.Add(seed);
-        UpdateSeedText();
-    }
+        seed.transform.localScale = Vector3.one * SeedPool.Instance.GetSeedScale(); // Fix scale
 
-    public IEnumerator AnimateAddSeedCoroutine(GameObject seed, Transform startContainer, float liftHeight, float moveSpeed)
-    {
-        seed.transform.SetParent(this.seedContainer, true);
-        Vector3 startPos = startContainer.position;
-        Vector3 endPos = this.seedContainer.position;
+        Vector3 startPos = fromTransform.position;
+        Vector3 liftPos = startPos + Vector3.up * liftHeight;
         Vector3 finalLocalPos = GetRandomSeedPosition();
-        Vector3 startLiftPos = startPos + Vector3.up * liftHeight;
-        Vector3 endLiftPos = endPos + Vector3.up * liftHeight;
-        Vector3 finalWorldPos = this.seedContainer.TransformPoint(finalLocalPos);
+        Vector3 finalWorldPos = seedContainer.TransformPoint(finalLocalPos);
 
-        while (Vector3.Distance(seed.transform.position, startLiftPos) > 0.01f)
+        float journey = 0f;
+        float duration = Vector3.Distance(startPos, liftPos) / (moveSpeed * 2); 
+        if (duration <= 0) duration = 0.01f;
+        while (journey < duration)
         {
-            seed.transform.position = Vector3.MoveTowards(seed.transform.position, startLiftPos, moveSpeed * Time.deltaTime);
+            journey += Time.deltaTime;
+            seed.transform.position = Vector3.Lerp(startPos, liftPos, journey / duration);
             yield return null;
         }
-        while (Vector3.Distance(seed.transform.position, endLiftPos) > 0.01f)
-        {
-            seed.transform.position = Vector3.MoveTowards(seed.transform.position, endLiftPos, moveSpeed * Time.deltaTime);
-            yield return null;
-        }
+        seed.transform.position = liftPos;
+
         while (Vector3.Distance(seed.transform.position, finalWorldPos) > 0.01f)
         {
             seed.transform.position = Vector3.MoveTowards(seed.transform.position, finalWorldPos, moveSpeed * Time.deltaTime);
@@ -135,14 +160,36 @@ public class Hole : MonoBehaviour
         UpdateSeedText();
         return count;
     }
+    
+    public void AddSeeds(int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            GameObject seed = SeedPool.Instance.GetSeed();
+            seed.transform.SetParent(seedContainer);
+            seed.transform.localPosition = GetRandomSeedPosition();
+            seed.transform.localScale = Vector3.one * SeedPool.Instance.GetSeedScale(); // Fix scale
+            seeds.Add(seed);
+        }
+        UpdateSeedText();
+    }
 
     public Vector3 GetRandomSeedPosition()
     {
-        return new Vector3(
-            Random.Range(-0.1f, 0.1f),
-            0f,
-            Random.Range(-0.1f, 0.1f)
-        );
+        if (holeType == HoleType.Storehouse)
+        {
+            return new Vector3(
+                Random.Range(-0.2f, 0.2f), 
+                0f, 
+                Random.Range(-0.4f, 0.4f)); 
+        }
+        else
+        {
+             return new Vector3(
+                Random.Range(-0.1f, 0.1f),
+                0f,
+                Random.Range(-0.1f, 0.1f));
+        }
     }
 
     private void UpdateSeedText()
@@ -150,14 +197,6 @@ public class Hole : MonoBehaviour
         if (seedText != null)
         {
             seedText.text = seeds.Count.ToString();
-        }
-    }
-
-    public void SetTurnHighlight(bool state)
-    {
-        if (turnIndicatorHighlight != null)
-        {
-            turnIndicatorHighlight.SetActive(state);
         }
     }
 }

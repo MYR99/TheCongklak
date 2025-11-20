@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 2282813176252633807}
   - component: {fileID: 5474368682799520480}
   - component: {fileID: 7888830052055232168}
-  - component: {fileID: 4590003513616053292}
   - component: {fileID: 5271912527602530272}
   m_Layer: 3
   m_Name: PlayerHoles4
@@ -119,19 +118,6 @@ MonoBehaviour:
   seedContainer: {fileID: 7368305461121371244}
   seedText: {fileID: 4835925380495818422}
   turnIndicatorHighlight: {fileID: 7143186676169089891}
---- !u!114 &4590003513616053292
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 108246834360808253}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e588a01ba7a10547b3580a00f9b5c11, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!23 &5271912527602530272
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -441,7 +427,6 @@ GameObject:
   - component: {fileID: 547220539002218958}
   - component: {fileID: 2549803852749323765}
   - component: {fileID: 119582809357819793}
-  - component: {fileID: 5735549424249813955}
   - component: {fileID: 8055689080604392566}
   m_Layer: 3
   m_Name: PlayerHoles6
@@ -546,20 +531,7 @@ MonoBehaviour:
   holeIndex: 6
   seedContainer: {fileID: 393584454195524752}
   seedText: {fileID: 3692041256036048467}
-  turnIndicatorHighlight: {fileID: 1475877220900377888}
---- !u!114 &5735549424249813955
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1250444105337758260}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e588a01ba7a10547b3580a00f9b5c11, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  turnIndicatorHighlight: {fileID: 2892939084228524602}
 --- !u!23 &8055689080604392566
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -913,7 +885,6 @@ GameObject:
   - component: {fileID: 1687499050676179989}
   - component: {fileID: 2857961970016117690}
   - component: {fileID: 5358352163089426885}
-  - component: {fileID: 7281202265122166473}
   - component: {fileID: 6454814312145955740}
   m_Layer: 3
   m_Name: PlayerHoles1
@@ -1019,19 +990,6 @@ MonoBehaviour:
   seedContainer: {fileID: 4801329670391010969}
   seedText: {fileID: 8051280744452698031}
   turnIndicatorHighlight: {fileID: 3533636137855726078}
---- !u!114 &7281202265122166473
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2918693435585402953}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e588a01ba7a10547b3580a00f9b5c11, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!23 &6454814312145955740
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1449,7 +1407,6 @@ GameObject:
   - component: {fileID: 2205437278706145732}
   - component: {fileID: 1817324168521850961}
   - component: {fileID: 2803925053619816154}
-  - component: {fileID: 2829494377285400116}
   - component: {fileID: 9104959125432679442}
   m_Layer: 3
   m_Name: OpponentHoles4
@@ -1555,19 +1512,6 @@ MonoBehaviour:
   seedContainer: {fileID: 3657365697198029074}
   seedText: {fileID: 4002560895539181361}
   turnIndicatorHighlight: {fileID: 5991841257610870934}
---- !u!114 &2829494377285400116
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3526072252550177335}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e588a01ba7a10547b3580a00f9b5c11, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!23 &9104959125432679442
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2079,7 +2023,6 @@ GameObject:
   - component: {fileID: 5387008597679915869}
   - component: {fileID: 4568109249343901220}
   - component: {fileID: 9033568436708795440}
-  - component: {fileID: 738314300440959868}
   - component: {fileID: 6550287953917425592}
   m_Layer: 3
   m_Name: PlayerHoles5
@@ -2185,19 +2128,6 @@ MonoBehaviour:
   seedContainer: {fileID: 3967546121145590364}
   seedText: {fileID: 4010704292524369898}
   turnIndicatorHighlight: {fileID: 6780628244570674135}
---- !u!114 &738314300440959868
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3922000918620685260}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e588a01ba7a10547b3580a00f9b5c11, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!23 &6550287953917425592
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2253,7 +2183,6 @@ GameObject:
   - component: {fileID: 4406452752217911355}
   - component: {fileID: 2159967333240540453}
   - component: {fileID: 8324449736003221709}
-  - component: {fileID: 5282592934890213216}
   - component: {fileID: 8200785265938612955}
   m_Layer: 3
   m_Name: OpponentHoles2
@@ -2359,19 +2288,6 @@ MonoBehaviour:
   seedContainer: {fileID: 7893619236003272914}
   seedText: {fileID: 1123608252794622531}
   turnIndicatorHighlight: {fileID: 563997420143253942}
---- !u!114 &5282592934890213216
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4320103324528013621}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e588a01ba7a10547b3580a00f9b5c11, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!23 &8200785265938612955
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2949,7 +2865,6 @@ GameObject:
   - component: {fileID: 1904624504130500791}
   - component: {fileID: 6922377104476164458}
   - component: {fileID: 4014455498453059072}
-  - component: {fileID: 8564183928307124824}
   - component: {fileID: 7159385148194585649}
   m_Layer: 3
   m_Name: OpponentHoles5
@@ -3055,19 +2970,6 @@ MonoBehaviour:
   seedContainer: {fileID: 5374650313784979281}
   seedText: {fileID: 8110283569726243435}
   turnIndicatorHighlight: {fileID: 7110918017402703875}
---- !u!114 &8564183928307124824
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4952933632003133504}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e588a01ba7a10547b3580a00f9b5c11, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!23 &7159385148194585649
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3123,7 +3025,6 @@ GameObject:
   - component: {fileID: 8299853332022674963}
   - component: {fileID: 9096095678258072387}
   - component: {fileID: 768138457128930243}
-  - component: {fileID: 4895800053042342107}
   - component: {fileID: 4703515841346635716}
   m_Layer: 3
   m_Name: PlayerHoles0
@@ -3229,19 +3130,6 @@ MonoBehaviour:
   seedContainer: {fileID: 7829422138482294481}
   seedText: {fileID: 401080705452906}
   turnIndicatorHighlight: {fileID: 9124584261219588467}
---- !u!114 &4895800053042342107
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5205205106592731244}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e588a01ba7a10547b3580a00f9b5c11, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!23 &4703515841346635716
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3297,7 +3185,6 @@ GameObject:
   - component: {fileID: 1371675799262142723}
   - component: {fileID: 3612097039294163524}
   - component: {fileID: 4887528623626371363}
-  - component: {fileID: 7467632749143393937}
   - component: {fileID: 5845895171171605873}
   m_Layer: 3
   m_Name: OpponentHoles6
@@ -3403,19 +3290,6 @@ MonoBehaviour:
   seedContainer: {fileID: 924690392310143635}
   seedText: {fileID: 2107036377329665307}
   turnIndicatorHighlight: {fileID: 6934047130141149784}
---- !u!114 &7467632749143393937
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5404424431488628302}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e588a01ba7a10547b3580a00f9b5c11, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!23 &5845895171171605873
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3565,7 +3439,6 @@ GameObject:
   - component: {fileID: 4470894803339496603}
   - component: {fileID: 4636659492974401506}
   - component: {fileID: 5169075718003058306}
-  - component: {fileID: 126011043313727538}
   - component: {fileID: 8363210250640224287}
   m_Layer: 3
   m_Name: PlayerHoles3
@@ -3671,19 +3544,6 @@ MonoBehaviour:
   seedContainer: {fileID: 4031567377816125830}
   seedText: {fileID: 5248817862094122345}
   turnIndicatorHighlight: {fileID: 1061327811409009134}
---- !u!114 &126011043313727538
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5808702298809364188}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e588a01ba7a10547b3580a00f9b5c11, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!23 &8363210250640224287
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3739,7 +3599,6 @@ GameObject:
   - component: {fileID: 6296181520191396173}
   - component: {fileID: 2034765526374296551}
   - component: {fileID: 7191737450444094302}
-  - component: {fileID: 7553414068485070845}
   - component: {fileID: 5465634086795647504}
   m_Layer: 3
   m_Name: PlayerHoles2
@@ -3845,19 +3704,6 @@ MonoBehaviour:
   seedContainer: {fileID: 5959178875953445759}
   seedText: {fileID: 2893459267567204861}
   turnIndicatorHighlight: {fileID: 827965558821356350}
---- !u!114 &7553414068485070845
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5840084983815370046}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e588a01ba7a10547b3580a00f9b5c11, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!23 &5465634086795647504
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -4162,7 +4008,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  holeType: 0
+  holeType: 2
   holeIndex: 7
   seedContainer: {fileID: 6917486283762706494}
   seedText: {fileID: 0}
@@ -4622,7 +4468,6 @@ GameObject:
   - component: {fileID: 1841040716170202069}
   - component: {fileID: 6099059390804475289}
   - component: {fileID: 6349973505361186359}
-  - component: {fileID: 419604064456301434}
   - component: {fileID: 5592028779992648894}
   m_Layer: 3
   m_Name: OpponentHoles3
@@ -4728,19 +4573,6 @@ MonoBehaviour:
   seedContainer: {fileID: 1655141805482895587}
   seedText: {fileID: 5871563281593062904}
   turnIndicatorHighlight: {fileID: 2616028079182949743}
---- !u!114 &419604064456301434
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7378190095935389573}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e588a01ba7a10547b3580a00f9b5c11, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!23 &5592028779992648894
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -4796,7 +4628,6 @@ GameObject:
   - component: {fileID: 6534583009542107418}
   - component: {fileID: 1629206537473364772}
   - component: {fileID: 7337526522258328446}
-  - component: {fileID: 8613389670208406690}
   - component: {fileID: 3517764984375610626}
   m_Layer: 3
   m_Name: OpponentHoles1
@@ -4902,19 +4733,6 @@ MonoBehaviour:
   seedContainer: {fileID: 1693826978745367442}
   seedText: {fileID: 2767850310812818035}
   turnIndicatorHighlight: {fileID: 179048984424083247}
---- !u!114 &8613389670208406690
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7446745412411724147}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e588a01ba7a10547b3580a00f9b5c11, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!23 &3517764984375610626
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -5223,7 +5041,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 479a5b2fdb29cc443a5bb30d9d475451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  holeType: 0
+  holeType: 2
   holeIndex: 7
   seedContainer: {fileID: 6917486283762706494}
   seedText: {fileID: 0}
@@ -5322,7 +5140,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 3468500406158557883}
+  - {fileID: 899595092194651553}
   - {fileID: 3835486311926487825}
   m_Father: {fileID: 834642915497370250}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -5384,7 +5202,7 @@ MonoBehaviour:
   holeIndex: 6
   seedContainer: {fileID: 393584454195524752}
   seedText: {fileID: 0}
-  turnIndicatorHighlight: {fileID: 1475877220900377888}
+  turnIndicatorHighlight: {fileID: 2892939084228524602}
 --- !u!1 &7664750667010663674
 GameObject:
   m_ObjectHideFlags: 0
@@ -5746,7 +5564,6 @@ GameObject:
   - component: {fileID: 4142782442470728375}
   - component: {fileID: 2717975669429323216}
   - component: {fileID: 4989902210067941205}
-  - component: {fileID: 3735320536794990163}
   - component: {fileID: 7919833079110580030}
   m_Layer: 3
   m_Name: OpponentHoles0
@@ -5852,19 +5669,6 @@ MonoBehaviour:
   seedContainer: {fileID: 7016815218531800260}
   seedText: {fileID: 7225347259135299627}
   turnIndicatorHighlight: {fileID: 4870134988311287125}
---- !u!114 &3735320536794990163
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8162835485404024119}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e588a01ba7a10547b3580a00f9b5c11, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!23 &7919833079110580030
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -7120,7 +6924,7 @@ PrefabInstance:
     - target: {fileID: 6056360547413759232, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
@@ -7225,7 +7029,7 @@ PrefabInstance:
     - target: {fileID: 6056360547413759232, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
@@ -7325,7 +7129,7 @@ PrefabInstance:
     - target: {fileID: 6056360547413759232, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
@@ -7430,7 +7234,7 @@ PrefabInstance:
     - target: {fileID: 6056360547413759232, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
@@ -7515,7 +7319,7 @@ PrefabInstance:
     - target: {fileID: 6056360547413759232, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
@@ -7620,7 +7424,7 @@ PrefabInstance:
     - target: {fileID: 6056360547413759232, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
@@ -7725,7 +7529,7 @@ PrefabInstance:
     - target: {fileID: 6056360547413759232, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
@@ -7809,91 +7613,6 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 3975888729445578339}
   m_PrefabAsset: {fileID: 0}
---- !u!1001 &4645424907454382112
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 393584454195524752}
-    m_Modifications:
-    - target: {fileID: 6056360547413759232, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
-        type: 3}
-      propertyPath: m_Name
-      value: TurnHighlight
-      objectReference: {fileID: 0}
-    - target: {fileID: 6056360547413759232, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
-        type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.01
-      objectReference: {fileID: 0}
-    - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
-        type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
-        type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
-        type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: -90
-      objectReference: {fileID: 0}
-    - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: f33b976f9d3ec5745b7f46ad552ddbe2, type: 3}
---- !u!1 &1475877220900377888 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6056360547413759232, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
-    type: 3}
-  m_PrefabInstance: {fileID: 4645424907454382112}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &3468500406158557883 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
-    type: 3}
-  m_PrefabInstance: {fileID: 4645424907454382112}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &6043614638072499382
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7910,7 +7629,7 @@ PrefabInstance:
     - target: {fileID: 6056360547413759232, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
@@ -8218,7 +7937,7 @@ PrefabInstance:
     - target: {fileID: 6056360547413759232, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
@@ -8323,7 +8042,7 @@ PrefabInstance:
     - target: {fileID: 6056360547413759232, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
@@ -8423,7 +8142,7 @@ PrefabInstance:
     - target: {fileID: 6056360547413759232, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
@@ -8523,7 +8242,7 @@ PrefabInstance:
     - target: {fileID: 6056360547413759232, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
@@ -8623,7 +8342,7 @@ PrefabInstance:
     - target: {fileID: 6056360547413759232, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
         type: 3}
@@ -8711,4 +8430,89 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 6056360547413759232, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
     type: 3}
   m_PrefabInstance: {fileID: 8088883265041873007}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &8946764673215196986
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 393584454195524752}
+    m_Modifications:
+    - target: {fileID: 6056360547413759232, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
+        type: 3}
+      propertyPath: m_Name
+      value: TurnHighlight
+      objectReference: {fileID: 0}
+    - target: {fileID: 6056360547413759232, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.01699996
+      objectReference: {fileID: 0}
+    - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.70710677
+      objectReference: {fileID: 0}
+    - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.000000029802322
+      objectReference: {fileID: 0}
+    - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: f33b976f9d3ec5745b7f46ad552ddbe2, type: 3}
+--- !u!4 &899595092194651553 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8094459370105143963, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
+    type: 3}
+  m_PrefabInstance: {fileID: 8946764673215196986}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &2892939084228524602 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6056360547413759232, guid: f33b976f9d3ec5745b7f46ad552ddbe2,
+    type: 3}
+  m_PrefabInstance: {fileID: 8946764673215196986}
   m_PrefabAsset: {fileID: 0}
