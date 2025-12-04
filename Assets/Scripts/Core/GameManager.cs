@@ -8,10 +8,10 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
 
     [Header("Board References")]
-    [SerializeField] private Hole[] playerOneHoles; 
-    [SerializeField] private Hole[] playerTwoHoles; 
-    [SerializeField] private Hole playerOneStorehouse; 
-    [SerializeField] public Hole playerTwoStorehouse; 
+    [SerializeField] private Hole[] playerOneHoles;
+    [SerializeField] private Hole[] playerTwoHoles;
+    [SerializeField] public Hole playerOneStorehouse;
+    [SerializeField] public Hole playerTwoStorehouse;
 
     [Header("Gameplay Settings")]
     [SerializeField] private int startingSeeds = 7;
@@ -20,18 +20,17 @@ public class GameManager : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private UIController uiController;
-    [SerializeField] public GameConfig config; 
+    [SerializeField] public GameConfig config;
     [SerializeField] public GameObject pausePanel;
     [SerializeField] private bool sowDebugLogs = false;
     [SerializeField] private AIController aiController;
-    
+
     [Header("Game State")]
     public int currentPlayer = 1;
     public bool isGameActive = false;
     public bool isSowing = false;
     public bool IsPaused { get; private set; } = false;
     private bool isAITurn = false;
-    private int totalSowableHoles;
 
     [Header("Stats (for Game End)")]
     private int p1TotalMoves = 0;
@@ -56,7 +55,7 @@ public class GameManager : MonoBehaviour
         startingSeeds = config.initialSeedsPerHole;
         InitializeBoard();
         UpdateUI();
-        
+
         if (pausePanel != null) pausePanel.SetActive(false);
         IsPaused = false;
         Time.timeScale = 1f;
@@ -69,7 +68,8 @@ public class GameManager : MonoBehaviour
         else
         {
             SetGameActive(true);
-            UpdateGameStatus("Game Dimulai", CurrentPlayer.PlayerOne);
+            // inform UI: game start
+            uiController.UpdateGameStatus(GameEvent.GameStart, currentPlayer);
         }
     }
 
@@ -79,15 +79,14 @@ public class GameManager : MonoBehaviour
         {
             aiController.Initialize(this, playerTwoHoles, playerOneHoles, playerTwoStorehouse, playerOneStorehouse);
         }
-        totalSowableHoles = playerOneHoles.Length + playerTwoHoles.Length + 1; 
-        
+
         foreach (Hole hole in playerOneHoles) hole.Initialize(startingSeeds, uiController);
         foreach (Hole hole in playerTwoHoles) hole.Initialize(startingSeeds, uiController);
         playerOneStorehouse.Initialize(0, uiController);
         playerTwoStorehouse.Initialize(0, uiController);
 
         currentPlayer = 1;
-        isGameActive = false; 
+        isGameActive = false;
         isSowing = false;
         isAITurn = false;
 
@@ -99,7 +98,7 @@ public class GameManager : MonoBehaviour
         InitializeBoard();
         UpdateUI();
         if (uiController != null) uiController.HideGameOver();
-        
+
         gameStartTime = Time.time;
         if (config.gameMode == GameMode.PlayerVsAI && !config.hasSeenIntroTutorial)
         {
@@ -108,7 +107,7 @@ public class GameManager : MonoBehaviour
         else
         {
             SetGameActive(true);
-            UpdateGameStatus("Game Dimulai", CurrentPlayer.PlayerOne);
+            uiController.UpdateGameStatus(GameEvent.GameStart, currentPlayer);
         }
     }
 
@@ -116,16 +115,14 @@ public class GameManager : MonoBehaviour
     {
         if (uiController == null) return;
         uiController.UpdateScores(playerOneStorehouse.GetSeedCount(), playerTwoStorehouse.GetSeedCount(), currentPlayer);
-        
-        if (currentPlayer == 1) UpdateGameStatus("Giliran Player 1", CurrentPlayer.PlayerOne);
-        else UpdateGameStatus("Giliran Player 2", CurrentPlayer.PlayerTwo);
+
+        uiController.UpdateGameStatus(GameEvent.TurnChanged, currentPlayer);
     }
 
     public void SelectHole(Hole hole)
     {
         if (isSowing || IsPaused) return;
-        
-        // Izinkan jika giliran AI walau gameActive false
+
         if (!isGameActive && !isAITurn) return;
 
         if (!IsValidMove(hole))
@@ -138,13 +135,6 @@ public class GameManager : MonoBehaviour
         StartSowing(hole);
     }
 
-    private void UpdateGameStatus(string message, CurrentPlayer player)
-    {
-        if (uiController == null) return;
-        int playerNum = (player == CurrentPlayer.PlayerOne) ? 1 : (player == CurrentPlayer.PlayerTwo ? 2 : 0);
-        uiController.UpdateGameStatus(message, playerNum);
-    }
-    
     private void CheckGameOver()
     {
         int p1Seeds = 0; foreach (var hole in playerOneHoles) p1Seeds += hole.GetSeedCount();
@@ -154,13 +144,13 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log("[GameManager] Game Over! Salah satu sisi kosong.");
             isGameActive = false;
-            
+
             int p1Remaining = p1Seeds;
-            foreach (var hole in playerOneHoles) p1Remaining += hole.ClearSeeds(); 
-            
+            foreach (var hole in playerOneHoles) p1Remaining += hole.ClearSeeds();
+
             int p2Remaining = p2Seeds;
             foreach (var hole in playerTwoHoles) p2Remaining += hole.ClearSeeds();
-            
+
             if (p1Remaining > 0) playerOneStorehouse.AddSeeds(p1Remaining);
             if (p2Remaining > 0) playerTwoStorehouse.AddSeeds(p2Remaining);
 
@@ -168,20 +158,17 @@ public class GameManager : MonoBehaviour
 
             int p1Final = playerOneStorehouse.GetSeedCount();
             int p2Final = playerTwoStorehouse.GetSeedCount();
-            string winner = (p1Final > p2Final) ? "P1" : ((p2Final > p1Final) ? "P2" : "DRAW");
 
-            if (AudioManager.Instance != null)
-            {
-                if (winner == "P1") AudioManager.Instance.PlaySFX(AudioManager.Instance.gameWin);
-                else AudioManager.Instance.PlaySFX(AudioManager.Instance.gameLose);
-            }
+            string winner = (p1Final > p2Final) ? "Player 1" : ((p2Final > p1Final) ? "Player 2" : LocalizationManager.Get("DRAW"));
 
             float duration = Time.time - gameStartTime;
-            string stats = $"Duration: {Mathf.FloorToInt(duration / 60)}m {Mathf.FloorToInt(duration % 60)}s\n" +
-                           $"Extra Turns: P1 ({p1ExtraTurns}) - P2 ({p2ExtraTurns})\n" +
-                           $"Max Capture: P1 ({p1MaxSeedsCaptured}) - P2 ({p2MaxSeedsCaptured})";
+            int minutes = Mathf.FloorToInt(duration / 60);
+            int seconds = Mathf.FloorToInt(duration % 60);
 
-            if (uiController != null) uiController.ShowGameOver(winner, p1Final, p2Final, stats);
+            // pass raw stats as numbers; UI will localize using keys
+            int totalSeeds = p1Final + p2Final;
+
+            if (uiController != null) uiController.ShowGameOver(winner, p1Final, p2Final, totalSeeds);
         }
     }
 
@@ -198,24 +185,54 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void UnpauseGame()
+    {
+        IsPaused = false;
+        Time.timeScale = 1f;
+
+        // Kalau bukan giliran AI → aktifkan player input
+        if (!isAITurn)
+            isGameActive = true;
+    }
+
+    public void ResumeTurn()
+    {
+        // Jika barusan contextual tutorial muncul saat AI turn
+        if (isAITurn)
+        {
+            StartCoroutine(HandleAITurn());
+            return;
+        }
+
+        // Kalau sedang sowing → lanjutkan sperti biasa
+        if (isSowing)
+        {
+            // biarkan coroutine sowing berjalan (sudah di-hold oleh yield WaitUntil)
+            return;
+        }
+
+        // Kalau player harusnya bisa main, aktifkan game
+        isGameActive = true;
+    }
+
+
     private IEnumerator HandleAITurn()
     {
-        Debug.Log("[AI] Memulai giliran AI..."); 
-        yield return new WaitForSeconds(1.0f); 
-        
+        Debug.Log("[AI] Memulai giliran AI...");
+        yield return new WaitForSeconds(1.0f);
+
         if (aiController != null)
         {
             aiController.MakeMove(config.aiDifficulty);
         }
         else
         {
-            isAITurn = false; 
+            isAITurn = false;
             Debug.LogError("[GameManager] AIController tidak ditemukan!");
         }
     }
 
-    #region Sowing Logic
-    
+    #region Sowing Logic (kept same)
     public void StartSowing(Hole startHole)
     {
         if (isSowing) return;
@@ -251,7 +268,7 @@ public class GameManager : MonoBehaviour
                     lastHole = GetNextHole(lastHole);
                 }
 
-                float currentMoveSpeed = seedMoveSpeed; 
+                float currentMoveSpeed = seedMoveSpeed;
                 if (config != null && config.isFastForwardActive) currentMoveSpeed *= config.fastForwardSpeedMultiplier;
 
                 yield return StartCoroutine(lastHole.AnimateAddSeedCoroutine(
@@ -265,21 +282,21 @@ public class GameManager : MonoBehaviour
 
             if (lastHole.GetHoleType() == HoleType.Storehouse)
             {
-                currentHole = null; 
+                currentHole = null;
             }
             else if (lastHole.GetSeedCount() == 1)
             {
-                currentHole = null; 
+                currentHole = null;
             }
-            else 
+            else
             {
                 if (config.gameMode == GameMode.PlayerVsAI && !config.hasSeenSowContinueTip && lastHole.GetHoleType() != HoleType.Storehouse)
                 {
-                    config.hasSeenSowContinueTip = true; 
-                    PauseForTutorial(TutorialType.SowContinue); 
-                    yield return new WaitUntil(() => !IsPaused); 
+                    config.hasSeenSowContinueTip = true;
+                    PauseForTutorial(TutorialType.SowContinue);
+                    yield return new WaitUntil(() => !IsPaused);
                 }
-                currentHole = lastHole; 
+                currentHole = lastHole;
             }
         }
 
@@ -291,7 +308,7 @@ public class GameManager : MonoBehaviour
             if (lastHole.GetHoleType() != HoleType.Storehouse && lastHole.GetSeedCount() == 1)
             {
                 Hole oppositeHole = GetOppositeHole(lastHole);
-                if (oppositeHole != null && oppositeHole.GetSeedCount() > 0) 
+                if (oppositeHole != null && oppositeHole.GetSeedCount() > 0)
                 {
                     if ((lastHole.GetHoleType() == HoleType.PlayerOne && currentPlayer == 1) ||
                         (lastHole.GetHoleType() == HoleType.PlayerTwo && currentPlayer == 2))
@@ -312,13 +329,13 @@ public class GameManager : MonoBehaviour
                     PauseForTutorial(TutorialType.ExtraTurn);
                     yield return new WaitUntil(() => !IsPaused);
                 }
-                
-                if (uiController != null) uiController.UpdateGameStatus($"Player {currentPlayer} gets an extra turn!", currentPlayer);
+
+                uiController.UpdateGameStatus(GameEvent.ExtraTurn, currentPlayer);
                 if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(AudioManager.Instance.extraTurn);
-                
+
                 p1ExtraTurns += (currentPlayer == 1) ? 1 : 0;
                 p2ExtraTurns += (currentPlayer == 2) ? 1 : 0;
-                
+
                 if (config.gameMode == GameMode.PlayerVsAI && currentPlayer == 2)
                 {
                     isAITurn = true;
@@ -326,7 +343,7 @@ public class GameManager : MonoBehaviour
                 }
                 else
                 {
-                    isGameActive = true; 
+                    isGameActive = true;
                 }
             }
             else if (wasCapture)
@@ -337,9 +354,9 @@ public class GameManager : MonoBehaviour
                     PauseForTutorial(TutorialType.Capture);
                     yield return new WaitUntil(() => !IsPaused);
                 }
-                
-                yield return StartCoroutine(HandleCaptureRoutine(lastHole)); 
-                SwitchPlayer(); 
+
+                yield return StartCoroutine(HandleCaptureRoutine(lastHole));
+                SwitchPlayer();
             }
             else
             {
@@ -347,30 +364,28 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        CheckGameOver(); 
-        
-        if (!isAITurn && !IsPaused && currentPlayer == 1) 
+        CheckGameOver();
+
+        if (!isAITurn && !IsPaused && currentPlayer == 1)
         {
-            isGameActive = true; 
+            isGameActive = true;
         }
     }
 
     private IEnumerator HandleCaptureRoutine(Hole lastHole)
     {
         Hole oppositeHole = GetOppositeHole(lastHole);
-        
-        if (oppositeHole == null || oppositeHole.GetSeedCount() == 0) 
+
+        if (oppositeHole == null || oppositeHole.GetSeedCount() == 0)
         {
-            yield break; 
+            yield break;
         }
 
-        Debug.Log($"[SOW] P{currentPlayer} MENEMBAK! Dari {lastHole.name} mengambil {oppositeHole.name}");
-
         List<GameObject> capturedSeeds = oppositeHole.TakeAllSeedObjects();
-        List<GameObject> capturingSeeds = lastHole.TakeAllSeedObjects(); 
-        
+        List<GameObject> capturingSeeds = lastHole.TakeAllSeedObjects();
+
         int totalCaptured = capturedSeeds.Count + capturingSeeds.Count;
-        
+
         if (currentPlayer == 1) p1MaxSeedsCaptured = Mathf.Max(p1MaxSeedsCaptured, totalCaptured);
         else p2MaxSeedsCaptured = Mathf.Max(p2MaxSeedsCaptured, totalCaptured);
 
@@ -391,32 +406,32 @@ public class GameManager : MonoBehaviour
             StartCoroutine(targetStorehouse.AnimateAddSeedCoroutine(seed, oppositeHole.GetSeedContainer(), liftHeight, currentMoveSpeed));
         foreach (var seed in capturingSeeds)
             StartCoroutine(targetStorehouse.AnimateAddSeedCoroutine(seed, lastHole.GetSeedContainer(), liftHeight, currentMoveSpeed));
-        
+
         if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(AudioManager.Instance.seedCapture);
 
         float dist = Vector3.Distance(oppositeHole.transform.position, targetStorehouse.transform.position);
-        float waitTime = (dist / currentMoveSpeed) + 0.5f; 
-        
+        float waitTime = (dist / currentMoveSpeed) + 0.5f;
+
         yield return new WaitForSeconds(waitTime);
     }
-    
+
     #endregion
 
-    #region Helper & Public Methods
-    
+    #region Helpers
+
     private Hole GetOppositeHole(Hole hole)
     {
         if (hole.GetHoleType() == HoleType.PlayerOne)
         {
-            int index = hole.GetHoleIndex(); 
-            int oppositeIndex = (playerTwoHoles.Length - 1) - index; 
+            int index = hole.GetHoleIndex();
+            int oppositeIndex = (playerTwoHoles.Length - 1) - index;
             if (oppositeIndex >= 0 && oppositeIndex < playerTwoHoles.Length)
                 return playerTwoHoles[oppositeIndex];
         }
         else if (hole.GetHoleType() == HoleType.PlayerTwo)
         {
-            int index = hole.GetHoleIndex(); 
-            int oppositeIndex = (playerOneHoles.Length - 1) - index; 
+            int index = hole.GetHoleIndex();
+            int oppositeIndex = (playerOneHoles.Length - 1) - index;
             if (oppositeIndex >= 0 && oppositeIndex < playerOneHoles.Length)
                 return playerOneHoles[oppositeIndex];
         }
@@ -432,41 +447,38 @@ public class GameManager : MonoBehaviour
 
             if (type == HoleType.PlayerOne)
             {
-                if (index < playerOneHoles.Length - 1) return playerOneHoles[index + 1]; 
-                return playerOneStorehouse; 
+                if (index < playerOneHoles.Length - 1) return playerOneHoles[index + 1];
+                return playerOneStorehouse;
             }
-            if (type == HoleType.Storehouse && current == playerOneStorehouse) return playerTwoHoles[0]; 
-            
+            if (type == HoleType.Storehouse && current == playerOneStorehouse) return playerTwoHoles[0];
+
             if (type == HoleType.PlayerTwo)
             {
-                if (index < playerTwoHoles.Length - 1) return playerTwoHoles[index + 1]; 
-                return playerTwoStorehouse; 
+                if (index < playerTwoHoles.Length - 1) return playerTwoHoles[index + 1];
+                return playerTwoStorehouse;
             }
-            if (type == HoleType.Storehouse && current == playerTwoStorehouse) return playerOneHoles[0]; 
-            
+            if (type == HoleType.Storehouse && current == playerTwoStorehouse) return playerOneHoles[0];
+
             return null;
         }
         catch (System.Exception) { return null; }
     }
 
-    public Hole GetNextHolePublic(Hole current) { return GetNextHole(current); }
-
     public bool IsValidMove(Hole hole)
     {
         if (hole == null) return false;
-        
-        // Perbolehkan jika ini giliran AI ATAU jika game sedang aktif dan tidak sowing/paused
+
         bool canInteract = (isGameActive || isAITurn) && !isSowing && !IsPaused;
         if (!canInteract) return false;
-        
+
         if (hole.GetSeedCount() == 0) return false;
-        
+
         bool isP1Turn = currentPlayer == 1;
         HoleType holeType = hole.GetHoleType();
 
         if ((isP1Turn && holeType == HoleType.PlayerOne) ||
             (!isP1Turn && holeType == HoleType.PlayerTwo && config.gameMode == GameMode.PlayerVsPlayer)) return true;
-        
+
         if (!isP1Turn && holeType == HoleType.PlayerTwo && config.gameMode == GameMode.PlayerVsAI) return true;
 
         return false;
@@ -478,10 +490,14 @@ public class GameManager : MonoBehaviour
 
     public void TogglePause()
     {
-        if (IsPaused && Time.timeScale == 0f && (pausePanel == null || !pausePanel.activeSelf)) return;
+        if (IsPaused && Time.timeScale == 0f && (pausePanel == null || !pausePanel.activeSelf))
+        {
+            return;
+        }
+
         IsPaused = !IsPaused;
-        if(pausePanel != null) pausePanel.SetActive(IsPaused);
-        
+        if (pausePanel != null) pausePanel.SetActive(IsPaused);
+
         if (IsPaused)
         {
             if (uiController != null) uiController.UpdatePausePanelInfo(playerOneStorehouse.GetSeedCount(), playerTwoStorehouse.GetSeedCount(), currentPlayer);
@@ -489,37 +505,41 @@ public class GameManager : MonoBehaviour
         }
         else Time.timeScale = 1f;
     }
+
     #endregion
-    
-    #region Tutorial System
+
+    #region Tutorial
     private void StartIntroTutorial()
     {
         Debug.Log("[GameManager] Memulai Tutorial Pengenalan...");
-        SetGameActive(false); IsPaused = true; 
+        SetGameActive(false); IsPaused = true;
         if (uiController != null) uiController.ShowIntroTutorial();
     }
     public void CompleteIntroTutorial()
     {
         if (config != null) config.hasSeenIntroTutorial = true;
-        if (uiController != null) uiController.HideIntroTutorial();
+        if (uiController != null)
         SetGameActive(true); IsPaused = false;
-        UpdateGameStatus("Giliran Anda", CurrentPlayer.PlayerOne);
+        uiController.UpdateGameStatus(GameEvent.TurnChanged, currentPlayer);
     }
     public void PauseForTutorial(TutorialType type)
     {
-        if (IsPaused) return; 
+        if (IsPaused) return;
         Debug.Log($"[GameManager] Pause untuk Tutorial: {type}");
-        IsPaused = true; Time.timeScale = 0f; 
+        IsPaused = true; Time.timeScale = 0f;
         if (uiController != null) uiController.ShowContextualTutorial(type);
     }
     public void ResumeFromTutorial()
     {
         Debug.Log("[GameManager] Melanjutkan game dari Tutorial.");
-        IsPaused = false; Time.timeScale = 1f; 
+        IsPaused = false; Time.timeScale = 1f;
         if (!isAITurn) isGameActive = true;
     }
+
+    public Hole GetNextHolePublic(Hole h)
+    {
+        return GetNextHole(h);
+    }
+    
     #endregion
 }
-
-public enum CurrentPlayer { None, PlayerOne, PlayerTwo }
-public enum TutorialType { ExtraTurn, Capture, SowContinue }

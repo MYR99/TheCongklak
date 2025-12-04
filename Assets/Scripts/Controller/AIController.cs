@@ -17,26 +17,17 @@ public class AIController : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
     }
 
-    /// <summary>
-    /// Diperbarui
-    /// </summary>
     public void Initialize(GameManager gm, Hole[] p2Holes, Hole[] p1Holes, Hole p2Storehouse, Hole p1Storehouse)
     {
         gameManager = gm;
         aiHoles = p2Holes;
         playerHoles = p1Holes;
         aiStorehouse = p2Storehouse;
-        playerStorehouse = p1Storehouse; 
+        playerStorehouse = p1Storehouse;
 
         totalSowableHoles = playerHoles.Length + aiHoles.Length + 1;
     }
@@ -50,61 +41,31 @@ public class AIController : MonoBehaviour
     {
         yield return new WaitForSeconds(Random.Range(1f, 1.5f));
 
-        float randomChance = Random.Range(0f, 1f); // Angka acak 0.0 - 1.0
+        float randomChance = Random.Range(0f, 1f);
         Hole selectedHole = null;
 
         switch (difficulty)
         {
             case AILevel.Easy:
- 
-                if (randomChance < 0.9f)
-                {
-                    selectedHole = FindBestMove_Random();
-                }
-                else
-                {
-                    selectedHole = FindBestMove_MediumLogic();
-                }
+                selectedHole = randomChance < 0.9f ? FindBestMove_Random() : FindBestMove_MediumLogic();
                 break;
 
             case AILevel.Medium:
-
-                if (randomChance < 0.5f)
-                {
-                    selectedHole = FindBestMove_Random();
-                }
-                else
-                {
-                    selectedHole = FindBestMove_MediumLogic();
-                }
+                selectedHole = randomChance < 0.5f ? FindBestMove_Random() : FindBestMove_MediumLogic();
                 break;
 
             case AILevel.Hard:
-
-                if (randomChance < 0.4f)
-                {
-                    selectedHole = FindBestMove_Random();
-                }
-                else
-                {
-                    selectedHole = FindBestMove_HardLogic();
-                }
+                selectedHole = randomChance < 0.4f ? FindBestMove_Random() : FindBestMove_HardLogic();
                 break;
         }
 
         if (selectedHole == null)
-        {
             selectedHole = FindBestMove_Random();
-        }
 
         if (selectedHole != null)
-        {
             gameManager.SelectHole(selectedHole);
-        }
         else
-        {
             gameManager.EndTurnAfterAI();
-        }
     }
 
     private List<Hole> GetValidMoves()
@@ -112,127 +73,89 @@ public class AIController : MonoBehaviour
         return aiHoles.Where(h => h.GetSeedCount() > 0).ToList();
     }
 
-    /// <summary>
-    /// LOGIKA 1: Acak Murni (Easy)
-    /// </summary>
     private Hole FindBestMove_Random()
     {
-        List<Hole> validMoves = GetValidMoves();
-        if (validMoves.Count > 0)
-        {
-            return validMoves[Random.Range(0, validMoves.Count)];
-        }
-        return null;
+        var list = GetValidMoves();
+        if (list.Count == 0) return null;
+        return list[Random.Range(0, list.Count)];
     }
 
-    /// <summary>
-    /// LOGIKA 2: Mencari Giliran Tambahan (Medium)
-    /// </summary>
     private Hole FindBestMove_MediumLogic()
     {
-        List<Hole> validMoves = GetValidMoves();
-        if (validMoves.Count == 0) return null;
+        var list = GetValidMoves();
+        if (list.Count == 0) return null;
 
-        foreach (var hole in validMoves)
-        {
-            if (IsExtraTurn(hole))
-            {
-                return hole; 
-            }
-        }
+        foreach (var h in list)
+            if (IsExtraTurn(h)) return h;
 
         return FindBestMove_Random();
     }
 
-    /// <summary>
-    /// LOGIKA 3: Mencari Giliran Tambahan + Tembakan Terbaik (Hard)
-    /// </summary>
     private Hole FindBestMove_HardLogic()
     {
+        Hole extra = FindBestMove_MediumLogic();
+        if (extra != null && IsExtraTurn(extra))
+            return extra;
 
-        Hole extraTurnMove = FindBestMove_MediumLogic();
-        if (extraTurnMove != null && IsExtraTurn(extraTurnMove)) 
-        {
-            return extraTurnMove;
-        }
+        var list = GetValidMoves();
+        if (list.Count == 0) return null;
 
-        List<Hole> validMoves = GetValidMoves();
-        if (validMoves.Count == 0) return null;
-
-        Hole bestCaptureMove = null;
+        Hole bestCapture = null;
         int maxCapture = 0;
 
-        foreach (var hole in validMoves)
+        foreach (var hole in list)
         {
+            Hole last = SimulateSow(hole);
 
-            Hole lastHole = SimulateSow(hole);
-
-            if (lastHole != null && lastHole.GetHoleType() == HoleType.PlayerTwo && lastHole.GetSeedCount() == 0) 
+            if (last != null &&
+                last.GetHoleType() == HoleType.PlayerTwo &&
+                last.GetSeedCount() == 0)
             {
-                Hole oppositeHole = GetOppositeHole(lastHole.GetHoleIndex());
-                if (oppositeHole != null && oppositeHole.GetSeedCount() > 0)
+                Hole opp = GetOppositeHole(last.GetHoleIndex());
+                if (opp != null)
                 {
-
-                    int currentCapture = oppositeHole.GetSeedCount() + 1; 
-                    if (currentCapture > maxCapture)
+                    int capture = opp.GetSeedCount() + 1;
+                    if (capture > maxCapture)
                     {
-                        maxCapture = currentCapture;
-                        bestCaptureMove = hole;
+                        maxCapture = capture;
+                        bestCapture = hole;
                     }
                 }
             }
         }
 
-        if (bestCaptureMove != null)
-        {
-            return bestCaptureMove;
-        }
-
-        return FindBestMove_Random();
+        return bestCapture ?? FindBestMove_Random();
     }
 
-    /// <summary>
-    /// Helper untuk mengecek apakah sebuah gerakan akan menghasilkan giliran tambahan
-    /// </summary>
     private bool IsExtraTurn(Hole hole)
     {
-        int seedCount = hole.GetSeedCount();
-        int holeIndex = hole.GetHoleIndex();
-        int distanceToStore = aiHoles.Length - holeIndex;
+        int seed = hole.GetSeedCount();
+        int index = hole.GetHoleIndex();
+        int dist = aiHoles.Length - index;
 
-        return (seedCount % totalSowableHoles == distanceToStore);
+        return (seed % totalSowableHoles == dist);
     }
 
-    /// <summary>
-    /// Helper untuk mendapatkan lubang di seberang
-    /// </summary>
-    private Hole GetOppositeHole(int aiHoleIndex)
+    private Hole GetOppositeHole(int index)
     {
-        int oppositeIndex = playerHoles.Length - 1 - aiHoleIndex;
-        if (oppositeIndex >= 0 && oppositeIndex < playerHoles.Length)
-        {
-            return playerHoles[oppositeIndex];
-        }
-        return null;
+        int oppIndex = playerHoles.Length - 1 - index;
+        if (oppIndex < 0 || oppIndex >= playerHoles.Length) return null;
+        return playerHoles[oppIndex];
     }
-    
-    /// <summary>
-    /// Helper untuk simulasi sederhana mencari lubang terakhir
-    /// </summary>
+
     private Hole SimulateSow(Hole startHole)
     {
         int seedCount = startHole.GetSeedCount();
-        Hole currentHole = startHole;
+        Hole current = startHole;
 
         for (int i = 0; i < seedCount; i++)
         {
-            currentHole = gameManager.GetNextHolePublic(currentHole);
+            current = gameManager.GetNextHolePublic(current);
 
-            if (currentHole == playerStorehouse)
-            {
-                currentHole = gameManager.GetNextHolePublic(currentHole);
-            }
+            if (current == playerStorehouse)
+                current = gameManager.GetNextHolePublic(current);
         }
-        return currentHole;
+
+        return current;
     }
 }
