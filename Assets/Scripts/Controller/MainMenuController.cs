@@ -157,6 +157,22 @@ public class MainMenuController : MonoBehaviour
         UpdateLanguageUI();
     }
 
+    public void OnSettingsButton()
+    {
+        PlayClickSound();
+
+        bool newState = !settingsPanel.activeSelf;
+        settingsPanel.SetActive(newState);
+
+        if (newState)
+        {
+        // FORCE REFRESH localizations in settings panel
+            var localized = settingsPanel.GetComponentsInChildren<TMP_TextAutoTranslate>(true);
+            foreach (var t in localized)
+                t.Refresh();
+        }
+    }
+
     public void OnMusicVolumeChanged(float value)
     {
         if (gameConfig != null) gameConfig.musicVolume = value;

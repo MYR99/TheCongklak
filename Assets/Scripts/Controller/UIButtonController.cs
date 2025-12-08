@@ -32,8 +32,10 @@ public class UIButtonController : MonoBehaviour
 
         isFastForwardActive = !isFastForwardActive;
         gameManager?.SetFastForward(isFastForwardActive);
-    }
 
+        uiController?.SetFastForwardVisual(isFastForwardActive);
+    }
+    
     // ======================================================
     // PAUSE
     // ======================================================

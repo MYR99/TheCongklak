@@ -4,6 +4,20 @@ using TMPro;
 public class UIController : MonoBehaviour
 {
     // ---------------------------------------------------
+    // FAST FORWARD BUTTON
+    // ---------------------------------------------------
+    [Header("Fast Forward Button")]
+    public UnityEngine.UI.Image fastForwardButtonImage;
+    public Sprite fastForwardOnSprite;
+    public Sprite fastForwardOffSprite;
+
+    public void SetFastForwardVisual(bool isActive)
+    {
+        if (fastForwardButtonImage == null) return;
+        fastForwardButtonImage.sprite = isActive ? fastForwardOnSprite : fastForwardOffSprite;
+    }
+
+    // ---------------------------------------------------
     // SCORE UI
     // ---------------------------------------------------
     [Header("Score UI")]

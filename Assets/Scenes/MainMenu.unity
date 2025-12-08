@@ -215,7 +215,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2300508dac5b12d4a845c274202b1c2e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  key: LABEL
+  key: LANGUAGE_OPTION
 --- !u!1 &33887413
 GameObject:
   m_ObjectHideFlags: 0
@@ -2479,6 +2479,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 252447338}
     m_Modifications:
+    - target: {fileID: 66151209024243470, guid: 029827dad25ebd444bb2db64aa349314,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1688701666768148572, guid: 029827dad25ebd444bb2db64aa349314,
         type: 3}
       propertyPath: m_Pivot.x
@@ -2662,7 +2667,7 @@ PrefabInstance:
     - target: {fileID: 4423347907395029465, guid: 029827dad25ebd444bb2db64aa349314,
         type: 3}
       propertyPath: m_text
-      value: Bahasa
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 4466557309368622427, guid: 029827dad25ebd444bb2db64aa349314,
         type: 3}
@@ -2734,10 +2739,20 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
       value: MainMenuController, Assembly-CSharp
       objectReference: {fileID: 0}
+    - target: {fileID: 7336440828682996500, guid: 029827dad25ebd444bb2db64aa349314,
+        type: 3}
+      propertyPath: m_text
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 7657668939337825790, guid: 029827dad25ebd444bb2db64aa349314,
         type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7897409883311301268, guid: 029827dad25ebd444bb2db64aa349314,
+        type: 3}
+      propertyPath: m_text
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 8353381787781220013, guid: 029827dad25ebd444bb2db64aa349314,
         type: 3}
@@ -2754,6 +2769,16 @@ PrefabInstance:
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1593151189}
+    - target: {fileID: 8824928187446923052, guid: 029827dad25ebd444bb2db64aa349314,
+        type: 3}
+      propertyPath: m_text
+      value: Sound Enable
+      objectReference: {fileID: 0}
+    - target: {fileID: 9116871737134400213, guid: 029827dad25ebd444bb2db64aa349314,
+        type: 3}
+      propertyPath: m_text
+      value: 
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:

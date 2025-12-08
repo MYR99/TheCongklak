@@ -14,7 +14,7 @@ public class TMP_TextAutoTranslate : MonoBehaviour
     private void OnEnable()
     {
         LocalizationManager.LanguageChanged += Refresh;
-        Refresh();
+        Refresh(); 
     }
 
     private void OnDisable()
@@ -24,15 +24,15 @@ public class TMP_TextAutoTranslate : MonoBehaviour
 
     public void Refresh()
     {
-        if (textElement != null && !string.IsNullOrEmpty(key))
-        {
-            textElement.text = LocalizationManager.Get(key);
-        }
+        if (textElement == null || string.IsNullOrEmpty(key))
+            return;
+
+        textElement.text = LocalizationManager.Get(key);
     }
 
     public void SetKey(string newKey)
     {
         key = newKey;
+        Refresh(); 
     }
-
 }

@@ -101,8 +101,12 @@
       "English": "Sound Enabled"
     },
     "LANGUAGE_TITLE": {
-      "Indonesian": "Bahasa",
-      "English": "Language"
+      "Indonesian": "Pilih Bahasa",
+      "English": "Select Language"
+    },
+    "LANGUAGE_OPTION": {
+      "Indonesian": "Bahasa Indonesia",
+      "English": "English"
     },
     "LANGUAGE_OPTION_ID": {
       "Indonesian": "Bahasa Indonesia",
