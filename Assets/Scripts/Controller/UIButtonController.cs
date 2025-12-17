@@ -93,9 +93,7 @@ public class UIButtonController : MonoBehaviour
     // ======================================================
     public void OnSettingsButton()
     {
-        PlayClickSound();
-        if (settingsPanel != null)
-            settingsPanel.SetActive(!settingsPanel.activeSelf);
+        uiController.ToggleSettingsPanel();
     }
 
     // ======================================================

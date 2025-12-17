@@ -84,8 +84,8 @@
       "English": "Seeds: {0}"
     },
     "PAUSE_PLAYER_TURN": {
-      "Indonesian": "Giliran: {0}",
-      "English": "Turn: {0}"
+      "Indonesian": "Giliran:",
+      "English": "Turn:"
     },
 
     "MUSIC_TITLE": {
@@ -101,12 +101,8 @@
       "English": "Sound Enabled"
     },
     "LANGUAGE_TITLE": {
-      "Indonesian": "Pilih Bahasa",
-      "English": "Select Language"
-    },
-    "LANGUAGE_OPTION": {
-      "Indonesian": "Bahasa Indonesia",
-      "English": "English"
+      "Indonesian": "Bahasa",
+      "English": "Language"
     },
     "LANGUAGE_OPTION_ID": {
       "Indonesian": "Bahasa Indonesia",
@@ -117,13 +113,13 @@
       "English": "English"
     },
 
-    "SCORE_1": {
-      "Indonesian": "Pemain 1: {0}",
-      "English": "Player 1: {0}"
+    "PLAYER_1": {
+      "Indonesian": "Pemain 1",
+      "English": "Player 1"
     },
-    "SCORE_2": {
-      "Indonesian": "Pemain 2: {0}",
-      "English": "Player 2: {0}"
+    "PLAYER_2": {
+      "Indonesian": "Pemain 2",
+      "English": "Player 2"
     },
 
     "GAME_END_WINNER": {

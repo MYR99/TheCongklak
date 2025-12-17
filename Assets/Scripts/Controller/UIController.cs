@@ -3,6 +3,31 @@ using TMPro;
 
 public class UIController : MonoBehaviour
 {
+    void Start()
+    {
+        if (gameEndPanel != null)
+            gameEndPanel.SetActive(false);
+
+        if (contextualTutorialPanel != null)
+            contextualTutorialPanel.SetActive(false);
+        InitSettingsUI();
+    }
+
+    // =====================================================
+    // SETTINGS UI (GAME SCENE)
+    // =====================================================
+    [Header("Settings Panel")]
+    [SerializeField] private GameObject settingsPanel;
+
+    [Header("Audio Settings UI")]
+    [SerializeField] private UnityEngine.UI.Slider musicVolumeSlider;
+    [SerializeField] private TMPro.TMP_Text musicVolumeLabel;
+
+    [SerializeField] private UnityEngine.UI.Slider sfxVolumeSlider;
+    [SerializeField] private TMPro.TMP_Text sfxVolumeLabel;
+
+    [SerializeField] private UnityEngine.UI.Toggle soundToggle;
+
     // ---------------------------------------------------
     // FAST FORWARD BUTTON
     // ---------------------------------------------------
@@ -63,12 +88,6 @@ public class UIController : MonoBehaviour
     public GameObject contextualTutorialPanel;
     public TMP_Text contextualTitleTxt;
     public TMP_Text contextualBodyTxt;
-
-    void Start()
-    {
-        if (gameEndPanel != null) gameEndPanel.SetActive(false);
-        if (contextualTutorialPanel != null) contextualTutorialPanel.SetActive(false);
-    }
 
     // =====================================================
     // SCORE & STATUS
@@ -217,6 +236,98 @@ public class UIController : MonoBehaviour
                     (currentPlayer == 1) ? "TURN_P1" : "TURN_P2"
                 );
         }
+    }
+
+    // =====================================================
+    // SETTINGS – INITIALIZE
+    // =====================================================
+    public void InitSettingsUI()
+    {
+        if (GameManager.Instance == null || GameManager.Instance.config == null)
+            return;
+
+        var config = GameManager.Instance.config;
+
+        if (musicVolumeSlider != null)
+            musicVolumeSlider.value = config.musicVolume;
+
+        if (sfxVolumeSlider != null)
+            sfxVolumeSlider.value = config.sfxVolume;
+
+        if (soundToggle != null)
+            soundToggle.isOn = config.soundEnabled;
+
+        UpdateMusicLabel();
+        UpdateSFXLabel();
+    }
+
+    // =====================================================
+    // SETTINGS – AUDIO
+    // =====================================================
+    public void OnMusicVolumeChanged(float value)
+    {
+        if (GameManager.Instance?.config == null) return;
+
+        GameManager.Instance.config.musicVolume = value;
+
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.SetMusicVolume(value);
+
+        UpdateMusicLabel();
+    }
+
+    public void OnSFXVolumeChanged(float value)
+    {
+        if (GameManager.Instance?.config == null) return;
+
+        GameManager.Instance.config.sfxVolume = value;
+
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.SetSFXVolume(value);
+
+        UpdateSFXLabel();
+    }
+
+    public void OnSoundToggleChanged(bool isOn)
+    {
+        if (GameManager.Instance?.config == null) return;
+
+        GameManager.Instance.config.soundEnabled = isOn;
+
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.ToggleSound(isOn);
+    }
+
+    // =====================================================
+    // SETTINGS – LABEL
+    // =====================================================
+    private void UpdateMusicLabel()
+    {
+        if (musicVolumeLabel != null)
+            musicVolumeLabel.text =
+                $"{LocalizationManager.Get("MUSIC")}: {Mathf.RoundToInt(GameManager.Instance.config.musicVolume * 100)}%";
+    }
+
+    private void UpdateSFXLabel()
+    {
+        if (sfxVolumeLabel != null)
+            sfxVolumeLabel.text =
+                $"{LocalizationManager.Get("SFX")}: {Mathf.RoundToInt(GameManager.Instance.config.sfxVolume * 100)}%";
+    }
+
+    // =====================================================
+    // SETTINGS – PANEL
+    // =====================================================
+    public void ToggleSettingsPanel()
+    {
+        if (settingsPanel == null) return;
+        settingsPanel.SetActive(!settingsPanel.activeSelf);
+    }
+
+    public void CloseSettingsPanel()
+    {
+        if (settingsPanel != null)
+            settingsPanel.SetActive(false);
     }
 
     // =====================================================
