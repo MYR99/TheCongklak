@@ -25,4 +25,4 @@ MonoBehaviour:
   hasSeenExtraTurnTip: 0
   hasSeenCaptureTip: 0
   hasSeenSowContinueTip: 0
-  currentLanguage: 1
+  currentLanguage: 0
