@@ -24,7 +24,6 @@ public class PlayerInputController : MonoBehaviour
 
         if (IsPointerOverUIElement())
         {
-            Debug.Log("[PlayerInputController] Click is on UI → block world click");
             return;
         }
 

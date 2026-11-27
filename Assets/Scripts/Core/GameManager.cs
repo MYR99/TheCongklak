@@ -518,9 +518,12 @@ public class GameManager : MonoBehaviour
     public void CompleteIntroTutorial()
     {
         if (config != null) config.hasSeenIntroTutorial = true;
+
+        SetGameActive(true);
+        IsPaused = false;
+
         if (uiController != null)
-        SetGameActive(true); IsPaused = false;
-        uiController.UpdateGameStatus(GameEvent.TurnChanged, currentPlayer);
+            uiController.UpdateGameStatus(GameEvent.TurnChanged, currentPlayer);
     }
     public void PauseForTutorial(TutorialType type)
     {
