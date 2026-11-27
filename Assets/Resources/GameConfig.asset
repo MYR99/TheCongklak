@@ -16,8 +16,8 @@ MonoBehaviour:
   animationSpeed: 0.01
   fastForwardSpeedMultiplier: 3
   isFastForwardActive: 0
-  musicVolume: 0.04599511
-  sfxVolume: 0.12785356
+  musicVolume: 0.1
+  sfxVolume: 0.5
   soundEnabled: 1
   aiDifficulty: 0
   gameMode: 1
